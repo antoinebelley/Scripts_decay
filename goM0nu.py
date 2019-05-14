@@ -78,7 +78,7 @@ nth=32          # in [1,32],   number of threads to use
 def timeit(barcode):
 	try:
 		timestamp = str(glob.glob(imaout+'/M0nu_header_'+barcode+'*.txt')[0])
-		timestamp = re.sub(imaout+'/M0nu_header_',"",timestamp)
+		timestamp = re.sub(imaout+'M0nu_header_', '',timestamp)
 		timestamp = re.sub(".txt","",timestamp)
 		return timestamp
 
@@ -159,7 +159,7 @@ print("ppn       =  "+str(ppn))
 print("vmem      =  "+str(vmem))
 print("nth       =  "+str(nth))
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-incheck = input("Is this input acceptable?(Y/N): ")
+incheck = input("Is this input acceptable?(Y/N):")
 print("")
 
 if incheck == 'n' or incheck == 'N':
@@ -370,45 +370,55 @@ onebop = args.flow+"_M0nu_1b.op" # the symlink name for the 1b op
 twobop = args.flow+"_M2nu_2b.op" # " " " " " 2b "
 linkpy =  linkdir+".py"           # a script which will make additional symlinks, to be run after nushellx is done
 os.chdir(linkdir)
-os.system("rm -r "+linksh)         # just in case it already exists
-f = open(linksh,"w")
+os.system("rm -f "+linkpy)         # just in case it already exists
+f = open(linkpy,"w")
 f.write("import os\n\n")
 f.write("os.chdir(\""+basedir+"/"+mydir+"/"+nudirI+"\")\n")           
 f.write("for tempf in os.listdir(os.getcwd()):\n\t")
 f.write("if tempf.endswith(('.xvc','.nba','.prj','.sps','.sp','.lpt')):\n\t\t")
 if GTbar!=Zbar:
-	f.write("os.system('ln -sf ../$nudirI/'+tempf+' ../$GTdir/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the $nudirI to the GTdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$GTdir/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the $nudirI to the GTdir
 if Fbar!=Zbar:
-	f.write("os.system('ln -sf ../$nudirI/'+tempf+' ../$Fdir/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$Fdir/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
 if Tbar!=Zbar:
-	f.write("os.system('ln -sf ../$nudirI/'+tempf+' ../$Tdir/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$Tdir/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
+
+f.write("os.chdir(\""+basedir+"/"+mydir+"/"+nudirF+"\")\n")           
+f.write("for tempf in os.listdir(os.getcwd()):\n\t")
+f.write("if tempf.endswith(('.xvc','.nba','.prj','.sps','.sp','.lpt')):\n\t\t")
+if GTbar!=Zbar:
+	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../$GTdir/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the nudirF to the GTdir
+if Fbar!=Zbar:
+	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../$Fdir/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
+if Tbar!=Zbar:
+	f.write("os.system('ln -sf ../"nudirF+"/'+tempf+' ../$Tdir/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
 f.close()
-os.system('chmod 755 '+linksh)
+os.system('chmod 755 '+linkpy)
 
 os.chdir('..')
 if args.nushon != soff and args.flow != 'BARE' and ormanual != or1:
 	os.chdir(nudirI)
-	os.system('ln -s '+intfile+" "+tagit+"int")
-	os.system('ln -s '+spfile+" "+tagit+"sp")
+	os.system('ln -sf '+intfile+" "+tagit+"int")
+	os.system('ln -sf '+spfile+" "+tagit+"sp")
 	os.chdir('..')
 	os.chdir(nudirF)
-	os.system('ln -s'+intfile+" "+tagit+"int")
-	os.system('ln -s'+spfile+" "+tagit+"sp")
+	os.system('ln -sf '+intfile+" "+tagit+"int")
+	os.system('ln -sf '+spfile+" "+tagit+"sp")
 	os.chdir('..')
 if GTbar != Zbar:
 	os.chdir(GTdir)
-	os.system("ln -s *"+GTbar+"_1b.op "+onebop)
-	os.system("ln -s *"+GTbar+"_2b.op "+twobop)
+	os.system("ln -sf *"+GTbar+"_1b.op "+onebop)
+	os.system("ln -sf *"+GTbar+"_2b.op "+twobop)
 	os.chdir('..')
 if Fbar != Zbar:
 	os.chdir(Fdir)
-	os.system("ln -s *"+Fbar+"_1b.op "+onebop)
-	os.system("ln -s *"+Fbar+"_2b.op "+twobop)
+	os.system("ln -sf *"+Fbar+"_1b.op "+onebop)
+	os.system("ln -sf *"+Fbar+"_2b.op "+twobop)
 	os.chdir('..')
 if Tbar != Zbar:
 	os.chdir(Tdir)
-	os.system("ln -s *"+Tbar+"_1b.op "+onebop)
-	os.system("ln -s *"+Tbar+"_2b.op "+twobop)
+	os.system("ln -sf *"+Tbar+"_1b.op "+onebop)
+	os.system("ln -sf *"+Tbar+"_2b.op "+twobop)
 	os.chdir('..')
 
 sleep(snoozer)
@@ -525,17 +535,5 @@ os.remove(nutrunin)
 
 
 #Sends the job to qsub, where the executable to be run are in execute.py
-command = "python ."+imasms+"/nuqsub.py "python ."+imasms"/execute.py "+nucI+" M0nu_"+quni+" "+que+" "+wall+" "+ppn+" "+vnem+" "+nth
+command = "python "+imasms+"/nuqsub.py,'python "+imasms+"/execute.py' "+nucI+" M0nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vnem)+" "+str(nth)
 os.system(command)
-
-
-
-
-
-
-
-
-
-
-
-
