@@ -19,10 +19,10 @@ parser.add_argument("mycmd",     help = "The terminal execution command, eg) for
 parser.add_argument("myrun",     help = "The run name, eg) for nushellx it is the basename of *.ans and for nutbar it is the basename of *.input")
 parser.add_argument("mybarcode", help = "An additional barcode to make the run name more unqiue in the qsub (if undesired then enter 'off'")
 parser.add_argument("myque",     help = "To see which queues have been set, execute: qmgr -c 'p s'")
-parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type =int)
+parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type = int)
 parser.add_argument("myppn",     help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
-parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]",type = int)
-parser.add_argument("mynth",      help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
+parser.add_argument("mynth"      help = "In [1,$mynthmax],   number of threads to use", type = int)
 parser.add_argument("-p","--pastid", action='store', default=00000, help ='A currently running qsub id, or leave it empty' )
 args = parser.parse_args()
 
@@ -139,18 +139,3 @@ if batch_mode==True:
    sleep(0.1)
 else:
    call(cmd.split())  # Run in the terminal, rather than submitting
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
