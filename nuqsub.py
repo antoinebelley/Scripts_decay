@@ -12,18 +12,19 @@ import shutil
 from subprocess import call,PIPE
 from time import time,sleep
 from datetime import datetime
+from sys import argv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("mycmd",     help = "The terminal execution command, eg) for nushellx it is like '. ca48.bat' and for nutbar it is 'nutbar nutbar_ca480.input'")
 parser.add_argument("myrun",     help = "The run name, eg) for nushellx it is the basename of *.ans and for nutbar it is the basename of *.input")
 parser.add_argument("mybarcode", help = "An additional barcode to make the run name more unqiue in the qsub (if undesired then enter 'off'")
 parser.add_argument("myque",     help = "To see which queues have been set, execute: qmgr -c 'p s'")
-parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]")
+parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type =int)
 parser.add_argument("myppn",     help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
-parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]")
-parser.add_argument("mynth"      help = "In [1,$mynthmax],   number of threads to use", type = int)
-parser.add_argument("-p","--pastid", action='store_const', default=00000, help ='A currently running qsub id, or leave it empty' )
-args = parser.pars_args()
+parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]",type = int)
+parser.add_argument("mynth",      help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument("-p","--pastid", action='store', default=00000, help ='A currently running qsub id, or leave it empty' )
+args = parser.parse_args()
 
 mycmd       = args.mycmd
 myrun       = args.myrun
@@ -56,7 +57,7 @@ myemail = 'antoine.belley@mail.mcgill.ca'
 #pre-check
 mywallmin = 1
 mywallmax = 512
-myppmin   = 1
+myppnmin   = 1
 myppnmax  = 32 
 myvmemmin = 1
 myvmemmax = 251
@@ -117,10 +118,10 @@ logname=mybarcode+'_'+myrun
 
 ### Make an estimate of how much time to request. Only used for slurm at the moment.
 time_request = '24:00:00'
-if   e <  5 : time_request = '00:10:00'
-elif e <  8 : time_request = '01:00:00'
-elif e < 10 : time_request = '04:00:00'
-elif e < 12 : time_request = '12:00:00'
+#if   e <  5 : time_request = '00:10:00'
+#elif e <  8 : time_request = '01:00:00'
+#elif e < 10 : time_request = '04:00:00'
+#elif e < 12 : time_request = '12:00:00'
 
 
 ### Submit the job if we're running in batch mode, otherwise just run in the current shell
