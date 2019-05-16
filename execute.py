@@ -36,7 +36,7 @@ PWD      = os.getcwd()
 
 cmd_s1       = "bash -c ."+PWD+"/"+nudirI+"/"+args.nucI+".bat"
 cmd_s2       = "bash -c ."+PWD+"/"+nudirF+"/"+args.nucF+".bat"
-cmd_s2_links = "python ."+PWD+"/"+linkdir+"/"+linkpy
+cmd_links    = "python ."+PWD+"/"+linkdir+"/"+linkpy
 cmd_s3_GT    = "nutbar "+PWD+"/"+GTdir+"/"+nutrunin
 cmd_s3_F     = "nutbar "+PWD+"/"+Fdir+"/"+nutrunin
 cmd_s3_T     = "nutbar "+PWD+"/"+Tdir+"/"+nutrunin
@@ -49,8 +49,10 @@ def execute_stage1():
 def execute_stage2():
 	#Run nushelll for final state
 	os.system(cmd_s2)
-	#Run linkpy, dependant on how I've run nushellx
-	os.system(cmd_s2_links)
+
+def execute_links()
+	#Run linkpy, dependant on how I've run nushellx	
+	os.system(cmd_links)
 
 def execute_stage3():
 	#Run nutbar for Gammow teller transition if files given
@@ -65,12 +67,15 @@ if args.nushon == soff:
 	execute_stage3()#Run nutbar
 if args.nushon == s1on:
 	execute_stage1()#Run nushelll for initial state
+	execute_links() #Create symplinks
 	execute_stage3()#Run nutbar
 if args.nushon == s2on:
 	execute_stage2()#Run nushelll for final state
+	execute_links() #Create symlinks
 	execute_stage3()#Run nutbar
 if args.nushon == s12on:
 	execute_stage1()#Run nushelll for initial state
 	execute_stage2()#Run nushelll for final state
+	execute_links() #Create symlinks
 	execute_stage3()#Run nutbar
 		

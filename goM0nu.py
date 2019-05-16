@@ -84,12 +84,9 @@ def timeit(barcode):
 
 	except IndexError: 
 		print('ERROR 2135: cannot find a barcode!')
-		print("GTbar  = $GTbar")
-		print("GTtime = $GTtime")
-		print("Fbar   = $Fbar")
-		print("Ftime  = $Ftime")
-		print("Tbar   = $Tbar")
-		print("Ttime  = $Ttime")
+		print("GTbar  = "+args.GTbar)
+		print("Fbar   = "+args.Fbar)
+		print("Tbar   = "+args.Tbar)
 		print('Exiting...')
 		exit(1)
 
@@ -255,6 +252,7 @@ if GTbar == Zbar and Tbar != Zbar:
 
 #Go fetch the .sp and .int files when override is chosen
 if args.override:
+	override = oron
 	print('Manual OVERRIDE in effect...')
 	print("")
 	print("Would you like to choose space/interraction files from <1|2>:")
@@ -271,14 +269,26 @@ if args.override:
 		print("Fbar  = "+Fbar)     # " " " ", " " " "
 		print("Tbar  = "+Tbar)     # " " " ", " " " "
 		print("")
-	if ormanual == '2':
+	elif ormanual == '2':
 		print("From:  "+imaout)
-		print('Enter the name of the desired *.sp file:')
-		spfile = input()
-		print('Enter the name of the desired *.int file:')
-		intfile = input()
-		print()
-    	#still job to do...
+		spfile  = input('Enter the name of the desired *.sp file: ')
+		intfile = input('Enter the name of the desired *.int file:')
+		spfile_path  = imaout+spfile
+		intfile_path = imaout+intfile
+		try:
+			spfile_path = str(glob.glob(spfile_path)[0])
+		except IndexError:
+			print('ERROR 0152: cannot find the given *.sp file')
+			print("spfile = "+spfile)
+			print('Exiting...')
+			exit(1)
+		try:
+			intfile_path = str(glob.glob(intfile_path)[0])
+		except IndexError:
+			print('ERROR 6847: cannot find the given *.int file')
+			print("intfile = "+intfile)
+			print('Exiting...')
+			exit(1)
 	else:
 		print('ERROR 5818: invalid choice for ormanual')
 		print("ormanual = "+ormanual)
@@ -367,43 +377,42 @@ print("Prepping all the relevant symlinks...")
 print()
 
 onebop = args.flow+"_M0nu_1b.op" # the symlink name for the 1b op
-twobop = args.flow+"_M2nu_2b.op" # " " " " " 2b "
+twobop = args.flow+"_M0nu_2b.op" # " " " " " 2b "
 linkpy =  linkdir+".py"           # a script which will make additional symlinks, to be run after nushellx is done
 os.chdir(linkdir)
-os.system("rm -f "+linkpy)         # just in case it already exists
 f = open(linkpy,"w")
 f.write("import os\n\n")
 f.write("os.chdir(\""+basedir+"/"+mydir+"/"+nudirI+"\")\n")           
 f.write("for tempf in os.listdir(os.getcwd()):\n\t")
 f.write("if tempf.endswith(('.xvc','.nba','.prj','.sps','.sp','.lpt')):\n\t\t")
 if GTbar!=Zbar:
-	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$GTdir/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the $nudirI to the GTdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../"+GTdir+"/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the $nudirI to the GTdir
 if Fbar!=Zbar:
-	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$Fdir/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../"+Fdir+"/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
 if Tbar!=Zbar:
-	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../$Tdir/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
+	f.write("os.system('ln -sf ../"+nudirI+"/'+tempf+' ../"+Tdir+"/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
 
 f.write("os.chdir(\""+basedir+"/"+mydir+"/"+nudirF+"\")\n")           
 f.write("for tempf in os.listdir(os.getcwd()):\n\t")
 f.write("if tempf.endswith(('.xvc','.nba','.prj','.sps','.sp','.lpt')):\n\t\t")
 if GTbar!=Zbar:
-	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../$GTdir/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the nudirF to the GTdir
+	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../"+GTdir+"/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the nudirF to the GTdir
 if Fbar!=Zbar:
-	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../$Fdir/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
+	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../"+Fdir+"/'+tempf)\n\t\t")  # " " " " " " " " " " " " " " " Fdir
 if Tbar!=Zbar:
-	f.write("os.system('ln -sf ../"nudirF+"/'+tempf+' ../$Tdir/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
+	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../"+Tdir+"/'+tempf)\n\t")  # " " " " " " " " " " " " " " " Tdir
 f.close()
 os.system('chmod 755 '+linkpy)
 
 os.chdir('..')
 if args.nushon != soff and args.flow != 'BARE' and ormanual != or1:
 	os.chdir(nudirI)
-	os.system('ln -sf '+intfile+" "+tagit+"int")
-	os.system('ln -sf '+spfile+" "+tagit+"sp")
+	os.system('ln -sf '+intfile+" "+tagit+".int")
+	os.system('ln -sf '+spfile+" "+tagit+".sp")
 	os.chdir('..')
 	os.chdir(nudirF)
-	os.system('ln -sf '+intfile+" "+tagit+"int")
-	os.system('ln -sf '+spfile+" "+tagit+"sp")
+	os.system('ln -sf '+intfile+" "+tagit+".int")
+	os.system('ln -sf '+spfile+" "+tagit+".sp")
 	os.chdir('..')
 if GTbar != Zbar:
 	os.chdir(GTdir)
@@ -473,7 +482,7 @@ if args.nushon == s2on or args.nushon == s12on:
 		nucIans_path = str(glob.glob("../"+nudirI+"/"+nucIans)[0])
 		os.system('cp '+nucIans_path+' '+nucFans)
 	except IndexError:
-		print("ERROR 6659: cannot find nucIans = $nucIans for nucFans editing")
+		print("ERROR 6659: cannot find nucIans = "+nucIans+" for nucFans editing")
 		print("Exeiting...")
 		exit(1)
 	with open(nucFans,'r') as file:
@@ -537,3 +546,30 @@ os.remove(nutrunin)
 #Sends the job to qsub, where the executable to be run are in execute.py
 command = "python "+imasms+"/nuqsub.py,'python "+imasms+"/execute.py' "+nucI+" M0nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vnem)+" "+str(nth)
 os.system(command)
+
+
+#-----------------Write script to copy result into desired directory-------------------
+mycppy='mycopies.py' # a script to copy the results to $imamyr
+outfileGT='nutbar_tensor0_'+nucF+'0_'+GTbar+'.dat'
+outfileF='nutbar_tensor0_'+nucF+'0_'+Fbar+'.dat'
+outfileT='nutbar_tensor0_'+nucF+'0_'+Tbar+'.dat'
+totmyr = imamyr+"M0nu/"+nucI+"/"+mydir
+
+f = open(mcppy, "w")
+f.write("os.mkdirs("+imamyr+"+M0nu, exist_ok=True)\n")
+f.write("os.mkdirs("+imamyr+"M0nu/"+nucI+", exist_ok=True)\n")
+f.write("os.mkdirs("+totmyr+")\n")
+f.write("os.mkdirs("+totmyr+"/"+GTdir+")\n")
+f.write("os.mkdirs("+totmyr+"/"+Fdir+")\n")
+f.write("os.mkdirs("+totmyr+"/"+Tdir+")\n")
+f.write("os.system(cp "+GTdir+"/"+nucI+"*.lpt "+totmyr+"/"+GTdir+")\n")
+f.write("os.system(cp "+GTdir+"/"+nucF+"*.lpt "+totmyr+"/"+GTdir+")\n")
+f.write("os.system(cp "+GTdir+"/"+outfileGT+" "+totmyr+"/"+GTdir+")\n")
+f.write("os.system(cp "+Fdir+"/"+nucI+"*.lpt "+totmyr+"/"+Fdir+")\n")
+f.write("os.system(cp "+Fdir+"/"+nucF+"*.lpt "+totmyr+"/"+Fdir+")\n")
+f.write("os.system(cp "+Fdir+"/"+outfileF+" "+totmyr+"/"+Fdir+")\n")
+f.write("os.system(cp "+Tdir+"/"+nucI+"*.lpt "+totmyr+"/"+Tdir+")\n")
+f.write("os.system(cp "+Tdir+"/"+nucF+"*.lpt "+totmyr+"/"+Tdir+")\n")
+f.write("os.system(cp "+Tdir+"/"+outfileT+" "+totmyr+"/"+Tdir+")\n")
+f.close()
+os.system('chmod 755 '+mcppy)
