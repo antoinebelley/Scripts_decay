@@ -114,7 +114,7 @@ time srun %s
 """
 
 
-logname=mybarcode+'_'+myrun
+myrun=mybarcode+'_'+myrun
 
 ### Make an estimate of how much time to request. Only used for slurm at the moment.
 time_request = '24:00:00'
@@ -128,7 +128,7 @@ time_request = '24:00:00'
 if batch_mode==True:
    sfile = open(myrun+'.batch','w')
    if BATCHSYS == 'PBS':
-     sfile.write(FILECONTENT%(myrun,os.environ['PWD'],myppn,myvmem,myemail,logname,mynth,mycmd))
+     sfile.write(FILECONTENT%(myrun,os.environ['PWD'],myppn,myvmem,myemail,myrun,mynth,mycmd))
      sfile.close()
      call(['qsub', myrun+'.batch'])
    elif BATCHSYS == 'SLURM':
