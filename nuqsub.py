@@ -22,7 +22,7 @@ parser.add_argument("myque",     help = "To see which queues have been set, exec
 parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type = int)
 parser.add_argument("myppn",     help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
 parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
-parser.add_argument("mynth"      help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument("mynth",      help = "In [1,$mynthmax],   number of threads to use", type = int)
 parser.add_argument("-p","--pastid", action='store', default=00000, help ='A currently running qsub id, or leave it empty' )
 args = parser.parse_args()
 
@@ -126,16 +126,16 @@ time_request = '24:00:00'
 
 ### Submit the job if we're running in batch mode, otherwise just run in the current shell
 if batch_mode==True:
-   sfile = open(jobname+'.batch','w')
+   sfile = open(myrun+'.batch','w')
    if BATCHSYS == 'PBS':
-     sfile.write(FILECONTENT%(myrun,environ['PWD'],myppn,myvmem,myemail,logname,mynth,mycmd))
+     sfile.write(FILECONTENT%(myrun,os.environ['PWD'],myppn,myvmem,myemail,logname,mynth,mycmd))
      sfile.close()
-     call(['qsub', jobname+'.batch'])
+     call(['qsub', myrun+'.batch'])
    elif BATCHSYS == 'SLURM':
      sfile.write(FILECONTENT%(mynth,myrun,time_request,myemail,mynth,mynth,mycmd))
      sfile.close()
      call(['sbatch', jobname+'.batch'])
-   remove(jobname+'.batch') # delete the file
+   os.remove(myrun+'.batch') # delete the file
    sleep(0.1)
 else:
    call(cmd.split())  # Run in the terminal, rather than submitting
