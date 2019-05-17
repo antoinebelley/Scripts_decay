@@ -15,10 +15,9 @@ import os
 import shutil
 import glob
 import re
-from subprocess import call,PIPE
-from time import time,sleep
-from datetime import datetime
 import argparse
+from time import sleep
+#from write_evolve_file import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ZI",     help = "Atomic (proton) number of the initial nucleus (I)", type=int)
@@ -443,6 +442,10 @@ nucIao  = nucIans+'.o'
 
 if args.nushon == s1on or args.nushon == s12on:
 	os.chdir(nudirI)
+	# if args.flow != 'BARE' and ormanual != or1:
+	# 	write_ans(nucI,neigI,tagit,tagit,args.ZI,args.A,0,maxJI,delJI,0)
+	# else:
+	# 	write_ans(nucI,neigI,args.sp,args.int,args.ZI,args.A,0,maxJI,delJI,0)
 	f = open(nucIans,"w") #Wil overwrite file if they already exists
 	f.write('--------------------------------------------------\n')
 	f.write("lpe,   "+str(neigI)+"             ! option (lpe or lan), neig (zero=10)\n")
@@ -478,12 +481,16 @@ nucFao  = nucFans+'.o'
 
 if args.nushon == s2on or args.nushon == s12on:
 	os.chdir(nudirF)
+	# if args.flow != 'BARE' and ormanual != or1:
+	# 	write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
+	# else:
+	# 	write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
 	try:
 		nucIans_path = str(glob.glob("../"+nudirI+"/"+nucIans)[0])
 		os.system('cp '+nucIans_path+' '+nucFans)
 	except IndexError:
 		print("ERROR 6659: cannot find nucIans = "+nucIans+" for nucFans editing")
-		print("Exeiting...")
+		print("Exiting...")
 		exit(1)
 	with open(nucFans,'r') as file:
 		line = file.readlines()
@@ -509,11 +516,16 @@ s3id     = Zid           #satge 3 que id, as a backup...
 outfile  = "nutbar_tensor0_"+nucF+"0.dat" #this should contain the results :)
 nutrun   = "nutbar_"+nucF+"0" 
 nutrunin = nutrun+".input"
+
+# if args.flow != 'BARE' and ormanual != or1:
+# 	write_nutrunin(nucI, nucF, tagit, onebop, twobop)
+# else:
+# 	write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
 f = open(nutrunin,"w")
 if args.flow != 'Bare' and ormanual != or1:
 	f.write(tagit+"\n")
 else:
-	f.write(sp+"\n")
+	f.write(args.sp+"\n")
 f.write(nucI+"0\n")
 f.write(nucF+"0\n")
 f.write(onebop+' '+twobop)
@@ -544,7 +556,8 @@ os.remove(nutrunin)
 
 
 #Sends the job to qsub, where the executable to be run are in execute.py
-command = "python "+imasms+"/nuqsub.py,'python "+imasms+"/execute.py' "+nucI+" M0nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vnem)+" "+str(nth)
+command = "'python "+imasms+"execute_M0nu.py s12 "+nucI+" "+nucF+" "+GTbar+" "+Fbar+" "+Tbar+" "+os.getcwd()+"'"
+submit  = "python "+imasms+"nuqsub.py command "+nucI+" M0nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
 os.system(command)
 
 
@@ -555,7 +568,7 @@ outfileF='nutbar_tensor0_'+nucF+'0_'+Fbar+'.dat'
 outfileT='nutbar_tensor0_'+nucF+'0_'+Tbar+'.dat'
 totmyr = imamyr+"M0nu/"+nucI+"/"+mydir
 
-f = open(mcppy, "w")
+f = open(mycppy, "w")
 f.write("os.mkdirs("+imamyr+"+M0nu, exist_ok=True)\n")
 f.write("os.mkdirs("+imamyr+"M0nu/"+nucI+", exist_ok=True)\n")
 f.write("os.mkdirs("+totmyr+")\n")
@@ -572,4 +585,4 @@ f.write("os.system(cp "+Tdir+"/"+nucI+"*.lpt "+totmyr+"/"+Tdir+")\n")
 f.write("os.system(cp "+Tdir+"/"+nucF+"*.lpt "+totmyr+"/"+Tdir+")\n")
 f.write("os.system(cp "+Tdir+"/"+outfileT+" "+totmyr+"/"+Tdir+")\n")
 f.close()
-os.system('chmod 755 '+mcppy)
+os.system('chmod 755 '+mycppy)

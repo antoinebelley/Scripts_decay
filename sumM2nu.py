@@ -22,31 +22,32 @@ parser.add_argument("chift",  help = "The choice of $Eshift as set below, the op
 parser.add_argument("-a","--abin", action='store_true', help ="'abin' = run the sum ab-initio style by setting $EXP (below) to 0, if undesired it may be left blank (therefore running with $EXP correction to the s.e.s.)")
 args = parser.parse_args()
 
-precision=12      # the bc decimal precision
-abinon='abin'
-chlit='lit'
-chmine='mine'
+precision = 12      # the bc decimal precision
+abinon = 'abin'
+chlit = 'lit'
+chmine = 'mine'
+
 
 # function prototype: this function will get the lnum-th line of a file
 def getline(lnum, file):
-	with open(file,'r') as f:
-		lines = f.readlines()
-	return lines[lnum]
+    with open(file, 'r') as f:
+        lines = f.readlines()
+    return lines[lnum]
 
 # function prototype: this function will get the place-th of a space separated string (aka: vector)
 # make sure to put double qoutes around "vector", place counting starts from 0 (not 1)
 def getp(vector, place):
-	words = split.vector()
-	return words[place]
+    words = vector.split()
+    return words[place]
 
 ZF = args.ZI+2  #Atomic number after the decay
 ZK = args.ZI+1  #Atomic number of intermediate state
 
 if ZF > 62:
-	print('ERROR 8898: this nucleus is too heavy => extend the ELEM array!')
-	print("ZF ="+str(ZF))
-	print('Exiting...')
-	exit(1)
+    print('ERROR 8898: this nucleus is too heavy => extend the ELEM array!')
+    print("ZF ="+str(ZF))
+    print('Exiting...')
+    exit(1)
 
 ELEM =["blank", "h", "he",
       "li", "be", "b",  "c",  "n",  "o", "f",  "ne",
@@ -66,28 +67,28 @@ EXP=0     # initialize the experimental energy correction (between the lowest ly
 #Eshift/EXP if-else ladder. Takes the form:
 """
 if nucK == 'example':
-	if args.chift == chlit:
-		Eshift = 10.000000000 (= M_K + (M_I + M_F)/2 [MeV], the literature concention is ambiguous imo...)
-	elif args.chift == chmine:
-		Eshift=9.489001054   (= M_K - m_e + (M_I + M_F)/2 [MeV], where these atomic masses are electrically neutral and in the nuclear ground state)
-	EXP=9.9999 # the experimental energy between the lowest lying summed excitation state and the ground state for $nucK
+    if args.chift == chlit:
+        Eshift = 10.000000000 (= M_K + (M_I + M_F)/2 [MeV], the literature concention is ambiguous imo...)
+    elif args.chift == chmine:
+        Eshift=9.489001054   (= M_K - m_e + (M_I + M_F)/2 [MeV], where these atomic masses are electrically neutral and in the nuclear ground state)
+    EXP=9.9999 # the experimental energy between the lowest lying summed excitation state and the ground state for $nucK
 
 """
 if nucK == "sc48":
-	if args.chift == chlit:
-		Eshift = 1.859700017  # = M_sc48 + (M_ca48 + M_ti48)/2 [MeV]
-	elif args.chift == chmine:
-		Eshift=1.348701071  # = M_sc48 - m_e + (M_ca48 + M_ti48)/2 [MeV]
-	EXP = 2.5173 # the experimental energy between the lowest lying 1+ state and the ground state for sc48
+    if args.chift == chlit:
+        Eshift = 1.859700017  # = M_sc48 + (M_ca48 + M_ti48)/2 [MeV]
+    elif args.chift == chmine:
+        Eshift=1.348701071  # = M_sc48 - m_e + (M_ca48 + M_ti48)/2 [MeV]
+    EXP = 2.5173 # the experimental energy between the lowest lying 1+ state and the ground state for sc48
 else:
-	print("ERROR: the Eshift/EXP for this decay has not been set, please add them to the Eshift/EXP if-else ladder")
-	print("nucK = "+nucK)
-	print("Exiting...")
-	exit(1)
+    print("ERROR: the Eshift/EXP for this decay has not been set, please add them to the Eshift/EXP if-else ladder")
+    print("nucK = "+nucK)
+    print("Exiting...")
+    exit(1)
 
 mydir = args.mydir
 if mydir.endswith("/"):
-	mydir = mydir[:-len("/")]
+    mydir = mydir[:-len("/")]
 argum = mydir.split("_")
 maxK = argum[8]
 maxK = re.sub('neig','',maxK)
@@ -96,16 +97,16 @@ INT  = argum[4]
 
 neigK = args.neigK
 if neigK >= 'max' :
-	neigK = maxK
+    neigK = maxK
 qf = args.qf
 if qf == 'def':
-	qf =0.77
+    qf =0.77
 qfp = int(qf*100)
 if args.abin:
-	abinopt = 'corrected'
-	EXP = 'off'
+    abinopt = 'corrected'
+    EXP = 'off'
 else:
-	abinopt = 'default'
+    abinopt = 'default'
 
 print('~~~~~~~~~~~~~~~~~~~~~~~~~')
 print("A         =  "+str(args.A))
@@ -129,14 +130,14 @@ incheck = input("Is this input acceptable: ")
 print("")
 
 if incheck == 'n' or incheck == 'N':
-	print("Exiting ...")
-	exit(1)
+    print("Exiting ...")
+    exit(1)
 
 if args.chift != chlit and args.chift != chmine:
-	print('ERROR: invalid choice for chift')
-	print('chift ='+args.chift)
-	print('Exiting...')
-	exit(1)
+    print('ERROR: invalid choice for chift')
+    print('chift ='+args.chift)
+    print('Exiting...')
+    exit(1)
 
 #Make sure those respect the naming convention used in mydir
 KIdir    = 'KI_nutbar'      
@@ -147,30 +148,30 @@ nutfileF  = "nutbar_tensor0_"+nucF+"0.dat"
 os.chdir(nucI+"/"+mydir)
 
 try:
-	nutfileK_path = str(glob.glob(KIdir+"/"+nutfileK)[0])
+    nutfileK_path = str(glob.glob(KIdir+"/"+nutfileK)[0])
 except IndexError:
-	print('ERROR: Cannot find '+nucK+' nutbar files')
-	print('mydir    = '+mydir)
-	print('KIdir    = '+KIdir)
-	print('nutfileK = '+nutfileK)
-	print('Exiting...')
-	exit(1)
+    print('ERROR: Cannot find '+nucK+' nutbar files')
+    print('mydir    = '+mydir)
+    print('KIdir    = '+KIdir)
+    print('nutfileK = '+nutfileK)
+    print('Exiting...')
+    exit(1)
 
 try:
-	nutfileF_path = str(glob.glob(FKdir+"/"+nutfileF)[0])
+    nutfileF_path = str(glob.glob(FKdir+"/"+nutfileF)[0])
 except IndexError:
-	print('ERROR: Cannot find '+nucF+' nutbar files')
-	print('mydir    = '+mydir)
-	print('FKdir    = '+FKdir)
-	print('nutfileF = '+nutfileF)
-	print('Exiting...')
-	exit(1)
+    print('ERROR: Cannot find '+nucF+' nutbar files')
+    print('mydir    = '+mydir)
+    print('FKdir    = '+FKdir)
+    print('nutfileF = '+nutfileF)
+    print('Exiting...')
+    exit(1)
 
 outdir = 'sumM2nu_output' # this is the directory where I'll hold all the output, plotting files, etc...
 if args.chift == chlit:
-	outdir = outdir+"_"+chlit
+    outdir = outdir+"_"+chlit
 elif args.chift == chmine:
-	outdir = outdir+"_"+chmine
+    outdir = outdir+"_"+chmine
 outdir = outdir+"_"+abinopt
 
 os.makedirs(outdir, exists_ok=True)
@@ -200,13 +201,12 @@ nudirF   = 'nushxF_data'
 
 fileKgs  = nucK+"*.lpt"
 EKgs     = getline(7, nudirKgs+"/"+fileKgs)
-EKgs     = gtp(EKgs, 2)
+EKgs     = getp(EKgs, 2)
 fileIgs  = nucI+"*.lpt"
-EIgs     = getline(7, nudirIgs+"/"+fileIgs)
-EIgs     = gtp(EIgs, 2)
+EIgs     = getline(7, nudirI+"/"+fileIgs)
+EIgs     = getp(EIgs, 2)
 fileFgs  = nucF+"*.lpt"
-EFgs     = getline(7, nudirFgs+"/"+fileFgs)
-EFgs     = gtp(EFgs, 2)
+EFgs     = getline(7, nudirF+"/"+fileFgs)
 
 f.write("EIgs          =  "+str(EIgs)+"\n")
 f.write("EKgs          =  "+str(EIgs)+"\n")
@@ -214,16 +214,16 @@ f.write("EFgs          =  "+str(EIgs)+"\n")
 
 # check to see that $nucfileK and $nucfileF have the same number of lines; they should!
 with open(KIdir+'/'+nutfileK,'r') as f:
-	linesK = f.readlines()
-	maxlK = len(linesK)
+    linesK = f.readlines()
+    maxlK = len(linesK)
 with open(FKdir+'/'+nutfileF,'r') as f:
-	linesF = f.readlines()
-	maxlF = len(linesF)
+    linesF = f.readlines()
+    maxlF = len(linesF)
 
 if maxlK != maxlF:
-	print(nutfileK+" and "+nutfileF+" have different line conts?!")
-	print("EXiting...")
-	exit(1)
+    print(nutfileK+" and "+nutfileF+" have different line conts?!")
+    print("EXiting...")
+    exit(1)
 
 # make a plotting scripts with accompanying data, which will be filled during the summation below
 mhplot     = 'Fig1MH'
@@ -247,8 +247,8 @@ p1 = open(plotsh1,"w")
 p1.write("set terminal png\n")
 p1.write("set output "+mhplot+"_"+INT+".png")
 if flow == 'BARE':
-	p1.write('set xrange [0:15]')
-	p1.write('set yrange [0:0.12]')
+    p1.write('set xrange [0:15]')
+    p1.write('set yrange [0:0.12]')
 p1.write("plot '"+plotfileq+"' w l title 'qf ="+qf+"', \\\n")
 p1.write("     '"+plotfileuq+"' w l 'qf = 1'\n")
 p1.close()
@@ -258,10 +258,10 @@ p2 = open(plotsh2,"w")
 p2.write("set terminal png\n")
 p2.write("set output "+mhplot+"_"+INT+".png")
 if flow == 'BARE':
-	p2.write('set xrange [2:15]')
-	p2.write('set arrow form 2,0 to 15,0 nohead linetype 9\n')
+    p2.write('set xrange [2:15]')
+    p2.write('set arrow form 2,0 to 15,0 nohead linetype 9\n')
 else:
-	p2.write('set arrow form 0,0 to 30,0 nohead linetype 9\n')
+    p2.write('set arrow form 0,0 to 30,0 nohead linetype 9\n')
 p2.write("     '"+plotfileKI+"' w l '< K | \\sigma\\tau | I >'\n")
 p2.write("     '"+plotfileFK+"' w l '< F | \\sigma\\tau | K >'\n")
 p2.close()
@@ -269,7 +269,7 @@ p2.close()
 
 # preform the sum that defines M2nu, that is:
 # M^{2\nu} = \sum_K [ < F | \sigma\tau | K > < K | \sigma\tau | I > / ( E_K - E_\text{gs} + $Eshift ) ]
-Print('Calculating M2nu sum...')
+print('Calculating M2nu sum...')
 f.write("nmeFK\t\t*\tnmeKI\t\t->\tnumer\t\t|  EK       EKgs     ; EK-EKgs +  Cexp   +  Eshift       ->  denom\t\t|\tnumer/denom\t+=  M2nu [running sum]")
 f.write("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
@@ -282,28 +282,28 @@ peq  = open(plotfileq,"w")
 pKI  = open(plotfileKI,"w")
 pFK  = open(plotfileKI,"w")
 for i in range(8,maxKsum+1):
-	lineK   = getline(i,KIdir+"/"+nutfileK)
-	EK      = float(getp(lineK, 4))
-	nmeKI   = float(getp(linek, 8))
-	lineF   = getline(i, FKdir+"/"+nutfileF)
-	EF      = float(getp(lineF, 4))
-	nmeFK   = float(getp(lineF ,8))             
-	numer   = nmeFK*nmeKI                       # numerator of the sum
-	Ex      = EK-EKgs                           # the excitation energy     
-	if args.EXP != 'off' and i == 8:
-		Cexp = EXP - Ex                         # the experimental energy correction value
-	ExC     = Ex+Cexp                           # the (experimentally corrected) excitation energy
-	denom   = Ex +Cexp+Eshift                   # denominator of the sum
-	tmepval = numer/denom                       # see line below
-	M2nu    += tempval                          # the M2nu partial sums
-	qM2nu   = M2nu *qf*qf                       # the quenched version of M2nu, it has two factors of qf since there are two GT operators in the numerator
-	aM2nu   = abs(M2nu)                         # just for plotting the partial sums
-	aqM2nu  = abs(qM2nu)                        # just for plotting the quenched partial sums
-	peuq.write(ExC+"\t"+aM2nu+"\n")
-	peq.write(ExC+"\t"+aqM2nu+"\n")
-	pKI.write(ExC+"\t"+nmeKI+"\n")
-	pFK.write(ExC+"\t"+nmeFK+"\n")
-	f.write(nmeFK+"\t*\t"+nmeKI+"\t->\t"+numer+"\t|  "+EK+"  "+EKgs+"  ;  "+"  +  "+Cexp+"  +  "+Eshift+"  ->  "+denom+"\t|\t"+tempval+"\t+=  "+M2nu+"\n")
+    lineK   = getline(i,KIdir+"/"+nutfileK)
+    EK      = float(getp(lineK, 4))
+    nmeKI   = float(getp(lineK, 8))
+    lineF   = getline(i, FKdir+"/"+nutfileF)
+    EF      = float(getp(lineF, 4))
+    nmeFK   = float(getp(lineF ,8))             
+    numer   = nmeFK*nmeKI                       # numerator of the sum
+    Ex      = EK-EKgs                           # the excitation energy     
+    if args.EXP != 'off' and i == 8:
+        Cexp = EXP - Ex                         # the experimental energy correction value
+    ExC     = Ex+Cexp                           # the (experimentally corrected) excitation energy
+    denom   = Ex +Cexp+Eshift                   # denominator of the sum
+    tempval = numer/denom                       # see line below
+    M2nu    += tempval                          # the M2nu partial sums
+    qM2nu   = M2nu *qf*qf                       # the quenched version of M2nu, it has two factors of qf since there are two GT operators in the numerator
+    aM2nu   = abs(M2nu)                         # just for plotting the partial sums
+    aqM2nu  = abs(qM2nu)                        # just for plotting the quenched partial sums
+    peuq.write(ExC+"\t"+aM2nu+"\n")
+    peq.write(ExC+"\t"+aqM2nu+"\n")
+    pKI.write(ExC+"\t"+nmeKI+"\n")
+    pFK.write(ExC+"\t"+nmeFK+"\n")
+    f.write(nmeFK+"\t*\t"+nmeKI+"\t->\t"+numer+"\t|  "+EK+"  "+EKgs+"  ;  "+"  +  "+Cexp+"  +  "+Eshift+"  ->  "+denom+"\t|\t"+tempval+"\t+=  "+M2nu+"\n")
 peuq.close()
 peq.close()
 pKI.close()

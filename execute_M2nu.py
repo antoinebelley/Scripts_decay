@@ -6,11 +6,9 @@ parser.add_argument("srun",    help = "'s1', 's2', 's12' or 'off', where s stand
 parser.add_argument("nucI",    help = "Initial nucleus" )
 parser.add_argument("nucK",    help = "Intermediate nucleus")
 parser.add_argument("nucF",    help = "Initial nucleus" )
-parser.add_argument("quni",    help = "Makes the qsub more unique: should be of the form hw##_emax##")
-parser.add_argument("mydir",   help = "Directory for the whole run")
 args = parser.parse_args()
 
-
+runon='on'
 srun    = list(args.srun)
 s1run   = srun[0]
 s2run   = srun[1]
@@ -32,19 +30,20 @@ nutrun4   = "nutbar_"+args.nucK+"0"
 nutrun4in = nutrun4+".input"
 nutrun5   = "nutbar_"+args.nucF+"0" 
 nutrun5in = nutrun5+".input"
-PWD       = os.getcwd()
+PWD       = '/home/belleya/scratch/belleya/M2nu/ca48/M2nu_MAGNUS_3N_IMSRGfp_magic_magic_e10_hw16_neig250_MEC/'
+linkpy =  linkdir+".py" 
 
-cmd_s1       = "bash -c ."+PWD+"/"+nudirI+"/"+args.nucI+".bat"
-cmd_s2_gs    = "bash -c ."+PWD+"/"+nudirKgs+"/"+args.nuck+".bat"
-cmd_s2_ses   = "bash -c ."+PWD+"/"+nudirK+"/"+args.nuck+".bat"
-cmd_s3       = "bash -c ."+PWD+"/"+nudirF+"/"+args.nucF+".bat"
-cmd_links    = "python ."+PWD+"/"+linkdir+"/"+linkpy
+cmd_s1       = "bash -c "+PWD+"/"+nudirI+"/"+args.nucI+".bat"
+cmd_s2_gs    = "bash -c "+PWD+"/"+nudirKgs+"/"+args.nucK+".bat"
+cmd_s2_ses   = "bash -c "+PWD+"/"+nudirK+"/"+args.nucK+".bat"
+cmd_s3       = "bash -c "+PWD+"/"+nudirF+"/"+args.nucF+".bat"
+cmd_links    = "python "+PWD+linkdir+"/"+linkpy
 cmd_s4       = "nutbar "+PWD+"/"+KIdir+"/"+nutrun4in
 cmd_s5       = "nutbar "+PWD+"/"+FKdir+"/"+nutrun5in
 
 def execute_stage1():
 	#Run nushell fot the initial state
-	os.system(cms_s1)
+	os.system(cmd_s1)
 
 def execute_stage2():
 	#Run nushell for the intermediate state (both gs and ses)
@@ -67,7 +66,7 @@ def execute_stage5():
 	#Run nutbar for Final-intermediate step
 	os.system(cmd_s5)
 
-if s1run== runon:
+if s1run == runon:
 	execute_stage1()
 if s2run == runon:
 	execute_stage2()

@@ -5,7 +5,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("nushon",  help = "'s1', 's2', 's12' or 'off', where s stands for stage ")
 parser.add_argument("nucI",    help = "Initial nucleus" )
 parser.add_argument("nucF",    help = "Initial nucleus" )
-parser.add_argument("quni",    help = "Makes the qsub more unique: should be of the form hw##_emax##")
 parser.add_argument("GTbar",   help = "Barcode for GT")
 parser.add_argument("Fbar",    help = "Barcode for F")
 parser.add_argument("Tbar",    help = "Barcode for T")
@@ -32,7 +31,7 @@ Tdir     = 'T_'+args.Tbar               # " " " " " T " "
 outfile  = "nutbar_tensor0_"+args.nucF+"0.dat" #this should contain the results :)
 nutrun   = "nutbar_"+args.nucF+"0" 
 nutrunin = nutrun+".input"
-PWD      = os.getcwd()         
+PWD      = '/home/belleya/scratch/belleya/M0nu/ca48/M0nu_MAGNUS_IMSRGfp_magic_magic_e10_hw16'        
 
 cmd_s1       = "bash -c ."+PWD+"/"+nudirI+"/"+args.nucI+".bat"
 cmd_s2       = "bash -c ."+PWD+"/"+nudirF+"/"+args.nucF+".bat"
@@ -50,7 +49,7 @@ def execute_stage2():
 	#Run nushelll for final state
 	os.system(cmd_s2)
 
-def execute_links()
+def execute_links():
 	#Run linkpy, dependant on how I've run nushellx	
 	os.system(cmd_links)
 
