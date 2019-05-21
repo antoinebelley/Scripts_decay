@@ -19,7 +19,7 @@ import glob
 import re
 from time import sleep
 import argparse
-#from write_evolve_file import write_ans, write_nutrunin
+from write_evolve_file import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ZI",     help = "Atomic (proton) number of the initial nucleus (I)", type=int)
@@ -54,11 +54,6 @@ delJK=1              # ...similar to above... (K)
 neigF=5              # ...similar to above... (F)
 maxJF=6              # ...similar to above... (F)
 delJF=1              # ...similar to above... (F)
-que='oak'         # to see which queues have been set, execute: qmgr -c "p s"
-wall=384        # in [1,512],  walltime limit for qsub [hr]
-ppn=32          # in [1,32],   the number of CPUs to use for the qsub
-vmem=251        # in [1,251],  memory limit for qsub [GB]
-nth=32          # in [1,32],   number of threads to use
 snoozer=1              # set the sleep time between stages [s]
 tagit='IMSRG'            # a tag for the symlinks below
 catch='forM2nu'          # acts as a descriptor to help find the GT operator in $imaout, see $filebase below
@@ -82,6 +77,7 @@ if args.mec:
 	mecopt = mecon
 else:
 	mecopt = 'off'
+
 
 #Value for each stages and reference for future conditional statement
 srun    = list(args.srun)
@@ -176,12 +172,6 @@ print("gsJK      =  "+str(gsJK))
 print("gsPK      =  "+str(gsPK))
 print("sesJK     =  "+str(sesJK))
 print("sesPK     =  "+str(sesPK))
-print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-print("que       =  "+que)
-print("wall      =  "+str(wall))
-print("ppn       =  "+str(ppn))
-print("vmem      =  "+str(vmem))
-print("nth       =  "+str(nth))
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 incheck = input("Is this input acceptable?(Y/N):")
 print("")
@@ -363,7 +353,7 @@ os.chdir(temppwd)
 if args.override != oron:
 	print("filebase ="+filebase)
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-incheck = input("Are these files acceptable?(Y/N):\n")
+incheck = input("Are these files acceptable?(Y/N):")
 if incheck == 'n' or incheck == 'N':
 	print("Exiting ...")
 	exit(1)
@@ -521,31 +511,10 @@ nucIao  = nucIans+'.o'
 
 if s1run == runon:
 	os.chdir(nudirI)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucI,neigI,tagit,tagit,args.ZI,args.A,0,maxJI,delJI,0)
-	# else:
-	# 	write_ans(nucI,neigI,args.sp,args.int,args.ZI,args.A,0,maxJI,delJI,0)
-	f = open(nucIans,"w") #Wil overwrite file if they already exists
-	f.write('--------------------------------------------------\n')
-	f.write("lpe,   "+str(neigI)+"             ! option (lpe or lan), neig (zero=10)\n")
 	if args.flow != 'BARE' and ormanual != or1:
-		f.write(tagit+"                ! model space (*.sp) name (a8)\n")
+		write_ans(nucI,neigI,tagit,tagit,args.ZI,args.A,0,maxJI,delJI,0)
 	else:
-		f.write(args.sp+"                ! model space (*.sp) name (a8)\n")
-	f.write('n                    ! any restrictions (y/n)\n')
-	if args.flow != 'BARE' and ormanual != or1:
-		f.write(tagit+"                ! model space (*.int) name (a8)\n")
-	else:
-		f.write(args.int+"                ! model space (*.int) name (a8)\n")
-	f.write(" "+str(args.ZI)+"                  ! number of protons\n")
-	f.write(" "+str(args.A)+"                  ! number of nucleons\n")
-	f.write(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0,      ! min J, max J, del J\n")
-	f.write('  0                  ! parity (0 for +) (1 for -) (2 for both)\n')
-	f.write('--------------------------------------------------\n')
-	f.write('st                   ! option\n')
-	f.close()
-	print("Setting up "+ nucIans+" for nushellx...\n")
-	os.system("shell "+ nucIans+" >> "+nucIao) # set up files for nushellx, and divert stdout to file
+		write_ans(nucI,neigI,args.sp,args.int,args.ZI,args.A,0,maxJI,delJI,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -559,58 +528,18 @@ nucKao  = nucKans+'.o'
 
 if s2run == runon:
 	os.chdir(nudirKgs)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucK,'1',tagit,tagit,args.ZI,args.A,0,gsJK,gsJK,0)
-	# else:
-	# 	write_ans(nucK,'1',args.sp,args.int,args.ZI,args.A,0,gsJK,gsJK,0)
-	try:
-		nucIans_path = str(glob.glob("../"+nudirI+"/"+nucIans)[0])
-		os.system('cp '+nucIans_path+' '+nucKans)
-	except IndexError:
-		print("ERROR 6659: cannot find nucIans = "+nucIans+" for nucKans editing")
-		print("Exeiting...")
-		exit(1)
-	with open(nucKans,'r') as file:
-		line = file.readlines()
-	with open(nucKans,'w') as file:
-		for i in range(len(line)):
-			if re.sub(str(neigI),str(1),line[i])!= line[i]:
-				file.write(re.sub(str(neigI),str(1),line[i]))
-			elif re.sub(str(args.ZI),str(ZK),line[i]) != line[i]:
-				file.write(re.sub(str(args.ZI),str(ZK),line[i]))
-			elif re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(gsJK)+".0, "+str(gsJK)+".0",line[i]) != line[i]:
-				file.write(re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(gsJK)+".0, "+str(gsJK)+".0",line[i]))
-			elif re.sub('0',str(gsPK),line[i]) != line[i]:
-				file.write(re.sub('0',str(gsPK),line[i]))
-			else:
-				file.write(line[i])
-	print("Setting up "+ nucKans+" for nushellx of the gs energy...\n")
-	os.system("shell "+ nucKans+" >> "+nucKao) # set up files for nushellx, and divert stdout to file
+	if args.flow != 'BARE' and ormanual != or1:
+		write_ans(nucK,'1',tagit,tagit,args.ZI,args.A,0,gsJK,gsJK,0)
+	else:
+		write_ans(nucK,'1',args.sp,args.int,args.ZI,args.A,0,gsJK,gsJK,0)
 	os.chdir('..')
 	sleep(snoozer)
 
 	os.chdir(nudirK)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucK,args.neigK,tagit,tagit,args.ZI,args.A,0,sesJK,sesJK,0)
-	# else:
-	# 	write_ans(nucK,args.neigK,args.sp,args.int,args.ZI,args.A,0,sesJK,sesJK,0)
-	os.system('cp '+nucIans_path+' '+nucKans) #Already verif it exists above
-	with open(nucKans,'r') as file:
-		line = file.readlines()
-	with open(nucKans,'w') as file:
-		for i in range(len(line)):
-			if re.sub(str(neigI),str(args.neigK),line[i])!= line[i]:
-				file.write(re.sub(str(neigI),str(args.neigK),line[i]))
-			elif re.sub(str(args.ZI),str(ZK),line[i]) != line[i]:
-				file.write(re.sub(str(args.ZI),str(ZK),line[i]))
-			elif re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(sesJK)+".0, "+str(sesJK)+".0",line[i]) != line[i]:
-				file.write(re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(sesJK)+".0, "+str(sesJK)+".0",line[i]))
-			elif re.sub('0',str(sesPK),line[i]) != line[i]:
-				file.write(re.sub('0',str(sesPK),line[i]))
-			else:
-				file.write(line[i])
-	print("Setting up "+ nucKans+" for nushellx of the J="+str(sesJK)+" excitation energies...\n")
-	os.system("shell "+ nucKans+" >> "+nucKao) # set up files for nushellx, and divert stdout to file
+	if args.flow != 'BARE' and ormanual != or1:
+		write_ans(nucK,args.neigK,tagit,tagit,args.ZI,args.A,0,sesJK,sesJK,0)
+	else:
+		write_ans(nucK,args.neigK,args.sp,args.int,args.ZI,args.A,0,sesJK,sesJK,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -623,31 +552,10 @@ nucFao  = nucFans+'.o'
 
 if s3run == runon:
 	os.chdir(nudirKgs)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
-	# else:
-	# 	write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
-	try:
-		nucIans_path = str(glob.glob("../"+nudirI+"/"+nucIans)[0])
-		os.system('cp '+nucIans_path+' '+nucFans)
-	except IndexError:
-		print("ERROR 6659: cannot find nucIans = "+nucIans+" for nucFans editing")
-		print("Exeiting...")
-		exit(1)
-	with open(nucFans,'r') as file:
-		line = file.readlines()
-	with open(nucFans,'w') as file:
-		for i in range(len(line)):
-			if re.sub(str(neigI),str(neigF),line[i])!= line[i]:
-				file.write(re.sub(str(neigI),str(neigF),line[i]))
-			elif re.sub(str(args.ZI),str(ZF),line[i]) != line[i]:
-				file.write(re.sub(str(args.ZI),str(ZF),line[i]))
-			elif re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(delJF)+".0, "+str(maxJF)+".0",line[i])!=line[i]:
-				file.write(re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(delJF)+".0, "+str(maxJF)+".0",line[i]))
-			else:
-				file.write(line[i])
-	print("Setting up "+ nucFans+" for nushellx...\n")
-	os.system("shell "+ nucFans+" >> "+nucFao) # set up files for nushellx, and divert stdout to file
+	if args.flow != 'BARE' and ormanual != or1:
+		write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
+	else:
+		write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -662,24 +570,10 @@ nutrun4in = nutrun4+".input"
 
 if s4run == runon:
 	os.chdir(KIdir)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_nutrunin(nucI, nucF, tagit, onebop, twobop, c =sesJK)
-	# else:
-	# 	write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
-	f = open(nutrun4in,"w")
-	if args.flow != 'BARE' and ormanual != oron:
-		f.write(tagit)
+	if args.flow != 'BARE' and ormanual != or1:
+		write_nutrunin(nucI, nucF, tagit, onebop, twobop, c =sesJK)
 	else:
-		f.write(args.sp)
-	f.write(nucI+"0\n")
-	f.write(nucK+"0\n")
-	f.write(onebop+' '+twobop+'\n')
-	f.write('0.0\n')
-	f.write('1\n')
-	f.write(str(sesJK)+'.0\n')
-	f.write('1\n')
-	f.write(str(args.neigK)+'\n')
-	f.close()
+		write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
 	os.chdir('..')
 sleep(snoozer)
 
@@ -694,24 +588,10 @@ nutrun5in = nutrun5+".input"
 
 if s5run == runon:
 	os.chdir(FKdir)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_nutrunin(nucI, nucF, tagit, onebop, twobop)
-	# else:
-	# 	write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
-	f = open(nutrun5in,"w")
-	if args.flow != 'BARE' and ormanual != oron:
-		f.write(tagit)
+	if args.flow != 'BARE' and ormanual != or1:
+		write_nutrunin(nucI, nucF, tagit, onebop, twobop)
 	else:
-		f.write(args.sp)
-	f.write(nucK+"0\n")
-	f.write(nucF+"0\n")
-	f.write(onebop+' '+twobop)
-	f.write('0.0\n')
-	f.write('1\n')
-	f.write('0.0\n')
-	f.write('1\n')
-	f.write('\n')
-	f.close()
+		write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
 	os.chdir('..')
 sleep(snoozer)
 
@@ -720,7 +600,7 @@ sleep(snoozer)
 
 #Sends the job to qsub, where the executable to be run are in execute.py
 command = "'python "+imasms+"execute_M2nu.py "+srun+" "+nucI+" "+" "+nucK+" "+nucF+" "+os.path.dirname(os.path.realpath(__file__))+"'"
-submit  = "python "+imasms+"nuqsub.py command "+nucI+" M2nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
+submit  = "python "+imasms+"nuqsub.py command "+nucI+" M2nu_"+quni+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
 os.system(submit)
 
 #-----------------Write script to copy result into desired directory-------------------

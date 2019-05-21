@@ -10,7 +10,6 @@ class WrongJobScheduler(Exception):
 	
 
 class cluster:
-	"Class to describe the different cluster we can submit job to"
 	def __init__(self, name, host):
 		self.name = name
 		self.host = host
@@ -27,7 +26,6 @@ class cluster:
 
 
 class PBS(cluster):
-	"Subclass for the clusters using PBS as job scheduler"
 	def __init__(self, name, host, maxwall, maxppn, maxvmem, maxnth):
 		cluster.__init__(self, name, host)
 		self.wall   = maxwall
@@ -44,8 +42,9 @@ class PBS(cluster):
 			exit(1)
 
 
+
 	def submit_job(self, command, runname, email, wall = None, ppn = None, vmem = None, nth = None):
-		clamp = lambda n, minn, maxn: max(min(maxn, n), minn) #Makes sure the value is within a range and set it the boundary if it isn't
+		clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 		#Verify that the given arguments are inside the allowed values for the specifc cluster
 		for x in [wall, ppn, vmem, nth]:
 			if x == None:
@@ -74,7 +73,6 @@ class PBS(cluster):
 		
 
 class SLURM(cluster):
-	"Subclass for the clusters using SLURMas job scheduler"
 	def __init__(self, name, host, maxvmem, maxnth):
 		cluster.__init__(self, name, host)
 		self.nth  = maxnth
@@ -90,7 +88,7 @@ class SLURM(cluster):
 
 
 	def submit_job(self, command, runname, email, vmem = None, nth = None, time = '24:00:00'):
-		clamp = lambda n, minn, maxn,: max(min(maxn,n), minn) #Makes sure the value is within a range and set it the boundary if it isn't
+		clamp = lambda n, minn, maxn,: max(min(maxn,n), minn)
 		#verify that the given arguments are inside the allowed values for the specific cluster
 		for x in [vmem, nth]:
 			if x == None:
@@ -117,8 +115,7 @@ class SLURM(cluster):
 		os.remove(runname+'.batch')
 
 
-#Creates instances for the known cluster
-cedar = SLURM('CEDAR', 'cedar.computecanada.ca', 250,32)
-oak   = PBS('Oak', 'oak.arc.ubc.ca', 512, 32, 251, 32)
+cedar = SLURM('cedar', 'cedar.computecanada.ca', 250,32)
+oak   = PBS('oak', 'oak.arc.ubc.ca', 512, 32, 251, 32)
 
 

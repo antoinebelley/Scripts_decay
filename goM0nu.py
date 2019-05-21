@@ -17,7 +17,7 @@ import glob
 import re
 import argparse
 from time import sleep
-#from write_evolve_file import *
+from write_evolve_file import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ZI",     help = "Atomic (proton) number of the initial nucleus (I)", type=int)
@@ -56,6 +56,7 @@ imaout=os.getcwd()#'/global/home/belley/imsrg/work/output/'   # this must point 
 imasms='/globlal/home/belley/SMscrits/'   # " " " " " " nuqsub.py and executes.py scripts live
 imamyr='/global/home/belley/imsrg/work/results/'    # " " " " " " nutbar results may be copied to
 ormanual='0'
+oron = 'on'
 or1='1'
 or2='2'
 s1on='s1'
@@ -65,12 +66,6 @@ soff='off'
 Zbar='zzzzz'
 Ztime='zzzzzzzzzz'
 Zid=00000
-
-que='oak'         # to see which queues have been set, execute: qmgr -c "p s"
-wall=384        # in [1,512],  walltime limit for qsub [hr]
-ppn=32          # in [1,32],   the number of CPUs to use for the qsub
-vmem=251        # in [1,251],  memory limit for qsub [GB]
-nth=32          # in [1,32],   number of threads to use
 
 
 #Function to get a timestamp when given a M0nu barcode
@@ -148,12 +143,6 @@ print("nushon    =  "+args.nushon)
 print("GTbar     =  "+args.GTbar)
 print("Fbar      =  "+args.Fbar)
 print("Tbar      =  "+args.Tbar)
-print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-print("que       =  "+que)
-print("wall      =  "+str(wall))
-print("ppn       =  "+str(ppn))
-print("vmem      =  "+str(vmem))
-print("nth       =  "+str(nth))
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 incheck = input("Is this input acceptable?(Y/N):")
 print("")
@@ -442,31 +431,10 @@ nucIao  = nucIans+'.o'
 
 if args.nushon == s1on or args.nushon == s12on:
 	os.chdir(nudirI)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucI,neigI,tagit,tagit,args.ZI,args.A,0,maxJI,delJI,0)
-	# else:
-	# 	write_ans(nucI,neigI,args.sp,args.int,args.ZI,args.A,0,maxJI,delJI,0)
-	f = open(nucIans,"w") #Wil overwrite file if they already exists
-	f.write('--------------------------------------------------\n')
-	f.write("lpe,   "+str(neigI)+"             ! option (lpe or lan), neig (zero=10)\n")
 	if args.flow != 'BARE' and ormanual != or1:
-		f.write(tagit+"                ! model space (*.sp) name (a8)\n")
+		write_ans(nucI,neigI,tagit,tagit,args.ZI,args.A,0,maxJI,delJI,0)
 	else:
-		f.write(args.sp+"                ! model space (*.sp) name (a8)\n")
-	f.write('n                    ! any restrictions (y/n)\n')
-	if args.flow != 'BARE' and ormanual != or1:
-		f.write(tagit+"                ! model space (*.int) name (a8)\n")
-	else:
-		f.write(args.int+"                ! model space (*.int) name (a8)\n")
-	f.write(" "+str(args.ZI)+"                  ! number of protons\n")
-	f.write(" "+str(args.A)+"                  ! number of nucleons\n")
-	f.write(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0,      ! min J, max J, del J\n")
-	f.write('  0                  ! parity (0 for +) (1 for -) (2 for both)\n')
-	f.write('--------------------------------------------------\n')
-	f.write('st                   ! option\n')
-	f.close()
-	print("Setting up "+ nucIans+" for nushellx...")
-	os.system("shell "+ nucIans+" >> "+nucIao) # set up files for nushellx, and divert stdout to file
+		write_ans(nucI,neigI,args.sp,args.int,args.ZI,args.A,0,maxJI,delJI,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -481,31 +449,10 @@ nucFao  = nucFans+'.o'
 
 if args.nushon == s2on or args.nushon == s12on:
 	os.chdir(nudirF)
-	# if args.flow != 'BARE' and ormanual != or1:
-	# 	write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
-	# else:
-	# 	write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
-	try:
-		nucIans_path = str(glob.glob("../"+nudirI+"/"+nucIans)[0])
-		os.system('cp '+nucIans_path+' '+nucFans)
-	except IndexError:
-		print("ERROR 6659: cannot find nucIans = "+nucIans+" for nucFans editing")
-		print("Exiting...")
-		exit(1)
-	with open(nucFans,'r') as file:
-		line = file.readlines()
-	with open(nucFans,'w') as file:
-		for i in range(len(line)):
-			if re.sub(str(neigI),str(neigF),line[i])!= line[i]:
-				file.write(re.sub(str(neigI),str(neigF),line[i]))
-			elif re.sub(str(args.ZI),str(ZF),line[i]) != line[i]:
-				file.write(re.sub(str(args.ZI),str(ZF),line[i]))
-			elif re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(maxJF)+".0, "+str(delJF)+".0",line[i]):
-				file.write(re.sub(" 0.0, "+str(maxJI)+".0, "+str(delJI)+".0"," 0.0, "+str(maxJF)+".0, "+str(delJF)+".0",line[i]))
-			else:
-				file.write(line[i])
-	print("Setting up "+ nucFans+" for nushellx...")
-	os.system("shell "+ nucFans+" >> "+nucFao) # set up files for nushellx, and divert stdout to file
+	if args.flow != 'BARE' and ormanual != or1:
+		write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
+	else:
+		write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -517,24 +464,13 @@ outfile  = "nutbar_tensor0_"+nucF+"0.dat" #this should contain the results :)
 nutrun   = "nutbar_"+nucF+"0" 
 nutrunin = nutrun+".input"
 
-# if args.flow != 'BARE' and ormanual != or1:
-# 	write_nutrunin(nucI, nucF, tagit, onebop, twobop)
-# else:
-# 	write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
-f = open(nutrunin,"w")
-if args.flow != 'Bare' and ormanual != or1:
-	f.write(tagit+"\n")
+
+if args.flow != 'BARE' and ormanual != or1:
+	write_nutrunin(nucI, nucF, tagit, onebop, twobop)
 else:
-	f.write(args.sp+"\n")
-f.write(nucI+"0\n")
-f.write(nucF+"0\n")
-f.write(onebop+' '+twobop)
-f.write('0.0\n')
-f.write('1\n')
-f.write('0.0\n')
-f.write('1\n')
-f.write('\n')
-f.close()
+	write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
+
+
 if GTbar != Zbar:
 	os.chdir(GTdir)
 	os.system("rm -f "+outfile)
@@ -557,8 +493,8 @@ os.remove(nutrunin)
 
 #Sends the job to qsub, where the executable to be run are in execute.py
 command = "'python "+imasms+"execute_M0nu.py s12 "+nucI+" "+nucF+" "+GTbar+" "+Fbar+" "+Tbar+" "+os.getcwd()+"'"
-submit  = "python "+imasms+"nuqsub.py command "+nucI+" M0nu_"+quni+" "+que+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
-os.system(command)
+submit  = "python "+imasms+"nuqsub.py command "+nucI+" M0nu_"+quni+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
+os.system(submit)
 
 
 #-----------------Write script to copy result into desired directory-------------------

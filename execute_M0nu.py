@@ -33,9 +33,9 @@ nutrun   = "nutbar_"+args.nucF+"0"
 nutrunin = nutrun+".input"
 PWD      = '/home/belleya/scratch/belleya/M0nu/ca48/M0nu_MAGNUS_IMSRGfp_magic_magic_e10_hw16'        
 
-cmd_s1       = "bash -c ."+PWD+"/"+nudirI+"/"+args.nucI+".bat"
-cmd_s2       = "bash -c ."+PWD+"/"+nudirF+"/"+args.nucF+".bat"
-cmd_links    = "python ."+PWD+"/"+linkdir+"/"+linkpy
+cmd_s1       = "bash -c "+PWD+"/"+nudirI+"/"+args.nucI+".bat"
+cmd_s2       = "bash -c "+PWD+"/"+nudirF+"/"+args.nucF+".bat"
+cmd_links    = "python "+PWD+"/"+linkdir+"/"+linkpy
 cmd_s3_GT    = "nutbar "+PWD+"/"+GTdir+"/"+nutrunin
 cmd_s3_F     = "nutbar "+PWD+"/"+Fdir+"/"+nutrunin
 cmd_s3_T     = "nutbar "+PWD+"/"+Tdir+"/"+nutrunin
