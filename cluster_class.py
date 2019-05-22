@@ -11,12 +11,14 @@ class WrongJobScheduler(Exception):
 
 class cluster:
 	"Class to describe the different cluster we can submit job to"
+	
 	def __init__(self, name, host):
 		self.name = name
 		self.host = host
 		self.BATCHSYS = 'NONE'
 		if call('type '+'qsub', shell=True, stdout=PIPE, stderr=PIPE) == 0: self.BATCHSYS = 'PBS'
 		elif call('type '+'srun', shell=True, stdout=PIPE, stderr=PIPE) == 0: self.BATCHSYS = 'SLURM'
+		
 
 	
 	def get_jobsystem(self):
@@ -34,22 +36,27 @@ class PBS(cluster):
 		self.ppn    = maxppn
 		self.vmem   = maxvmem
 		self.thread = maxnth
-		try:
-			if self.BATCHYS != 'PBS':
-				raise(WrongJobScheduler)
-			break
-		except WrongJobScheduler:
-			print("The cluster is not using PBS as a job scheduler.")
-			print("Job scheduler = "+self.BATCHSYS)
-			exit(1)
 
 
 	def submit_job(self, command, runname, email, wall = None, ppn = None, vmem = None, nth = None):
 		clamp = lambda n, minn, maxn: max(min(maxn, n), minn) #Makes sure the value is within a range and set it the boundary if it isn't
 		#Verify that the given arguments are inside the allowed values for the specifc cluster
-		for x in [wall, ppn, vmem, nth]:
-			if x == None:
-				clamp(x, 1, self.x)
+		if wall is None:
+			wall = self.wall
+		else:
+			clamp(wall, 1, self.wall)
+		if ppn is None:
+			ppn = self.ppn
+		else:
+			clamp(ppn, 1, self.ppn)
+		if vmem is None:
+			vmem = self.vmem
+		else:
+			clamp(vmem, 1, self.vmem)
+		if nth is None:
+			nth = self.thread
+		else:
+			clamp(nth, 1, self.thread)
 		FILECONTENT = """#!/bin/bash
 		#PBS -N %s
 		#PBS -q oak
@@ -77,24 +84,21 @@ class SLURM(cluster):
 	"Subclass for the clusters using SLURMas job scheduler"
 	def __init__(self, name, host, maxvmem, maxnth):
 		cluster.__init__(self, name, host)
-		self.nth  = maxnth
+		self.thread  = maxnth
 		self.vmem  = maxvmem
-		try:
-			if self.BATCHYS != 'SLRUM':
-				raise(WrongJobScheduler)
-			break
-		except WrongJobScheduler:
-			print("The cluster is not using PBS as a job scheduler.")
-			print("Job scheduler = "+self.BATCHSYS)
-			exit(1)
 
 
 	def submit_job(self, command, runname, email, vmem = None, nth = None, time = '24:00:00'):
 		clamp = lambda n, minn, maxn,: max(min(maxn,n), minn) #Makes sure the value is within a range and set it the boundary if it isn't
 		#verify that the given arguments are inside the allowed values for the specific cluster
-		for x in [vmem, nth]:
-			if x == None:
-				clamp(x, 1, self.x)
+		if vmem is None:
+			vmem = self.vmem
+		else:
+			clamp(vmem, 1, self.vmem)
+		if nth is None:
+			nth = self.thread
+		else: 
+			clamp(nth, 1, self.thread)
 		FILECONTENT = """#!/bin/bash
 		#SBATCH --account=rrg-holt
 		#SBATCH --nodes=1

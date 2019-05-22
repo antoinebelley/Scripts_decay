@@ -14,12 +14,13 @@
 ##  this will use nuqsub.py from imasms, as set below
 
 import os
+import sys
 import shutil
 import glob
 import re
 from time import sleep
 import argparse
-from write_evolve_file import *
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ZI",     help = "Atomic (proton) number of the initial nucleus (I)", type=int)
@@ -71,6 +72,8 @@ runon='Q'
 runoff='0'
 Zid=000000
 
+sys.path.append(imasms)
+from write_evolve_file import *
 
 #Change the name of the file (see below) depending of if mec is chosen or not
 if args.mec:
@@ -529,17 +532,17 @@ nucKao  = nucKans+'.o'
 if s2run == runon:
 	os.chdir(nudirKgs)
 	if args.flow != 'BARE' and ormanual != or1:
-		write_ans(nucK,'1',tagit,tagit,args.ZI,args.A,0,gsJK,gsJK,0)
+		write_ans(nucK,'1',tagit,tagit,ZK,args.A,0,gsJK,gsJK,0)
 	else:
-		write_ans(nucK,'1',args.sp,args.int,args.ZI,args.A,0,gsJK,gsJK,0)
+		write_ans(nucK,'1',args.sp,args.int,ZK,args.A,0,gsJK,gsJK,0)
 	os.chdir('..')
 	sleep(snoozer)
 
 	os.chdir(nudirK)
 	if args.flow != 'BARE' and ormanual != or1:
-		write_ans(nucK,args.neigK,tagit,tagit,args.ZI,args.A,0,sesJK,sesJK,0)
+		write_ans(nucK,args.neigK,tagit,tagit,ZK,args.A,0,sesJK,sesJK,0)
 	else:
-		write_ans(nucK,args.neigK,args.sp,args.int,args.ZI,args.A,0,sesJK,sesJK,0)
+		write_ans(nucK,args.neigK,args.sp,args.int,ZK,args.A,0,sesJK,sesJK,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -551,11 +554,11 @@ nucFans = nucF+'.ans'
 nucFao  = nucFans+'.o'
 
 if s3run == runon:
-	os.chdir(nudirKgs)
+	os.chdir(nudirF)
 	if args.flow != 'BARE' and ormanual != or1:
-		write_ans(nucF,neigF,tagit,tagit,args.ZI,args.A,0,maxJF,delJF,0)
+		write_ans(nucF,neigF,tagit,tagit,ZF,args.A,0,maxJF,delJF,0)
 	else:
-		write_ans(nucF,neigF,args.sp,args.int,args.ZI,args.A,0,maxJF,delJF,0)
+		write_ans(nucF,neigF,args.sp,args.int,ZF,args.A,0,maxJF,delJF,0)
 	os.chdir('..')
 	sleep(snoozer)
 
@@ -599,8 +602,8 @@ sleep(snoozer)
 
 
 #Sends the job to qsub, where the executable to be run are in execute.py
-command = "'python "+imasms+"execute_M2nu.py "+srun+" "+nucI+" "+" "+nucK+" "+nucF+" "+os.path.dirname(os.path.realpath(__file__))+"'"
-submit  = "python "+imasms+"nuqsub.py command "+nucI+" M2nu_"+quni+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
+command = "'python "+imasms+"execute_M2nu.py "+args.srun+" "+nucI+" "+nucK+" "+nucF+"'"
+submit  = "python "+imasms+"nuqsub.py command "+nucI+" M2nu_"+quni
 os.system(submit)
 
 #-----------------Write script to copy result into desired directory-------------------

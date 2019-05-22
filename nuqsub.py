@@ -16,11 +16,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("mycmd",     help = "The terminal execution command, eg) for nushellx it is like '. ca48.bat' and for nutbar it is 'nutbar nutbar_ca480.input'")
 parser.add_argument("myrun",     help = "The run name, eg) for nushellx it is the basename of *.ans and for nutbar it is the basename of *.input")
 parser.add_argument("mybarcode", help = "An additional barcode to make the run name more unqiue in the qsub (if undesired then enter 'off'")
-parser.add_argument("mywall",    help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type = int)
-parser.add_argument("myppn",     help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
-parser.add_argument("myvmem",    help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
-parser.add_argument("mynth",     help = "In [1,$mynthmax],   number of threads to use", type = int)
-parser.add_argument("-t","--time", nargs=1, action='store',default='24:00:00', help = "Time request if you use cedar. Default is 24:00:00")
+parser.add_argument("-w", "--mywall", nargs=1, action='store',   help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type = int)
+parser.add_argument("-p", "--myppn", nargs=1, action='store',    help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
+parser.add_argument("-m", "--myvmem", nargs=1, action='store',   help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
+parser.add_argument("-n", "--mynth" ,  nargs=1, action='store',  help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument("-t", "--time", nargs=1, action='store' ,default='24:00:00', help = "Time request if you use cedar. Default is 24:00:00")
 args = parser.parse_args()
 
 mycmd        = args.mycmd
@@ -51,14 +51,14 @@ myrun=mybarcode+'_'+myrun
 ### Submit the job if we're running in batch mode, otherwise just run in the current shell
 if batch_mode==True:
     if BATCHSYS == 'PBS':
-        if os.environ(['MYHOST']) == oak.host():
+        if str(os.environ['HOSTNAME']) == oak.host:
             oak.submit_job(mycmd,myrun,myemail)
         else:
             print('Cluster is not known. Please create an instance for it.')
             print('Exiting...')
             exit(1)
     elif BATCHSYS == 'SLURM':
-        if os.environ(['MYHOST']) == cedar.host(): 
+        if str(os.environ['HOSTNAME']) == cedar.host: 
             cedar.submit_job(mycmd,myrun, myemail, time = time_request)
         else:
             print('Cluster is not known. Please create an instance for it.')

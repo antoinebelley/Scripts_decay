@@ -30,7 +30,7 @@ nutrun4   = "nutbar_"+args.nucK+"0"
 nutrun4in = nutrun4+".input"
 nutrun5   = "nutbar_"+args.nucF+"0" 
 nutrun5in = nutrun5+".input"
-PWD       = '/home/belleya/scratch/belleya/M2nu/ca48/M2nu_MAGNUS_3N_IMSRGfp_magic_magic_e10_hw16_neig250_MEC/'
+PWD       = os.getcwd()
 linkpy =  linkdir+".py" 
 
 cmd_s1       = "bash -c "+PWD+"/"+nudirI+"/"+args.nucI+".bat"

@@ -12,12 +12,14 @@
 ##  this script will use nuqsub.sh from $imasms, as set below
 
 import os
+import sys
 import shutil
 import glob
 import re
 import argparse
 from time import sleep
-from write_evolve_file import *
+
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ZI",     help = "Atomic (proton) number of the initial nucleus (I)", type=int)
@@ -53,7 +55,7 @@ delJF=1       # ...similar to above... (F)
 snoozer=1	# set the sleep time between stages [s]
 tagit='IMSRG'     # a tag for the symlinks below
 imaout=os.getcwd()#'/global/home/belley/imsrg/work/output/'   # this must point to where the IMSRG output files live
-imasms='/globlal/home/belley/SMscrits/'   # " " " " " " nuqsub.py and executes.py scripts live
+imasms='/globlal/home/belley/Scripts_decay/'   # " " " " " " nuqsub.py and executes.py scripts live
 imamyr='/global/home/belley/imsrg/work/results/'    # " " " " " " nutbar results may be copied to
 ormanual='0'
 oron = 'on'
@@ -66,6 +68,9 @@ soff='off'
 Zbar='zzzzz'
 Ztime='zzzzzzzzzz'
 Zid=00000
+
+sys.path.append(imasms)
+from write_evolve_file import *
 
 
 #Function to get a timestamp when given a M0nu barcode
@@ -493,7 +498,7 @@ os.remove(nutrunin)
 
 #Sends the job to qsub, where the executable to be run are in execute.py
 command = "'python "+imasms+"execute_M0nu.py s12 "+nucI+" "+nucF+" "+GTbar+" "+Fbar+" "+Tbar+" "+os.getcwd()+"'"
-submit  = "python "+imasms+"nuqsub.py command "+nucI+" M0nu_"+quni+" "+str(wall)+" "+str(ppn)+" "+str(vmem)+" "+str(nth)
+submit  = "python "+imasms+"nuqsub.py command "+nucI+" M0nu_"+quni
 os.system(submit)
 
 

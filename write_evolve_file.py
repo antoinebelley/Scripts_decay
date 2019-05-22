@@ -1,19 +1,19 @@
 import os
 
 #Writes the ans file for nushell and compile it sending the output to the ans.o file
-def write_ans(nucleus, neig, sp, inte, ZI, A, minJ, maxJ, delJ, parity):
+def write_ans(nucleus, neig, sp, inte, Z, A, minJ, maxJ, delJ, parity):
 	nucans = nucleus+'.ans'
 	nucao  = nucans+'.o'
 	f = open(nucans,"w") #Wil overwrite file if they already exists
 	f.write('--------------------------------------------------\n')
-	f.write("lpe,   "+neigI+"             ! option (lpe or lan), neig (zero=10)\n")
+	f.write("lpe,   "+str(neig)+"             ! option (lpe or lan), neig (zero=10)\n")
 	f.write(sp+"                ! model space (*.sp) name (a8)\n")
 	f.write('n                    ! any restrictions (y/n)\n')
 	f.write(inte+"                ! model space (*.int) name (a8)\n")
-	f.write(" "+str(ZI)+"                  ! number of protons\n")
+	f.write(" "+str(Z)+"                  ! number of protons\n")
 	f.write(" "+str(A)+"                  ! number of nucleons\n")
-	f.write(" "+str(minJ)+".0, "+str(maxJI)+".0, "+str(delJI)+".0,      ! min J, max J, del J\n")
-	f.write('  '+parity+'                  ! parity (0 for +) (1 for -) (2 for both)\n')
+	f.write(" "+str(minJ)+".0, "+str(maxJ)+".0, "+str(delJ)+".0,      ! min J, max J, del J\n")
+	f.write('  '+str(parity)+'                  ! parity (0 for +) (1 for -) (2 for both)\n')
 	f.write('--------------------------------------------------\n')
 	f.write('st                   ! option\n')
 	f.close()
@@ -21,10 +21,10 @@ def write_ans(nucleus, neig, sp, inte, ZI, A, minJ, maxJ, delJ, parity):
 	os.system("shell "+ nucans+" >> "+nucao) # set up files for nushellx, and divert stdout to file
 
 
-def write_nutrunin(nucI,nucF,onebop, twobop, a=1, b=0.0, c=1, d=0.0):
+def write_nutrunin(nucI,nucF,sp,onebop, twobop, a=1, b=0.0, c=1, d=0.0):
 	nutrun   = "nutbar_"+nucF+"0" 
 	nutrunin = nutrun+".input"
-	f.open(nutrunin,"w")
+	f = open(nutrunin,"w")
 	f.write(sp+"\n")
 	f.write(nucI+"0\n")
 	f.write(nucF+"0\n")
