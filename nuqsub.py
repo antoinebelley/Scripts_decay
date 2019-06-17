@@ -58,7 +58,7 @@ if batch_mode==True:
             print('Exiting...')
             exit(1)
     elif BATCHSYS == 'SLURM':
-        if str(os.environ['HOSTNAME']) == cedar.host: 
+        if str(os.environ['HOSTNAME'])[7:] == cedar.host: 
             cedar.submit_job(mycmd,myrun, myemail, time = time_request)
         else:
             print('Cluster is not known. Please create an instance for it.')

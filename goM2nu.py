@@ -15,9 +15,9 @@
 
 import os
 import sys
+import stat
 import shutil
 import glob
-import re
 from time import sleep
 import argparse
 
@@ -47,40 +47,52 @@ args = parser.parse_args()
 ##  stage 4 = the nutbar calculation for the initial nucleus to the intermediate nucleus
 ##  stage 5 = the nutbar calculation for the intermediate nucleus to the final nucleus, and make the results copying script (the latter of which doesn't require any queing)
 
-neigI=5              # number of eigenstates for nushellx to calculate for the initial nucelus (I)
-maxJI=6              # maximum total angular momentum of the initial nucleus' state (I)
-delJI=1              # step size for the total angular momentum calculations (I)
-maxJK=6              # ...similar to above... (K)
-delJK=1              # ...similar to above... (K)
-neigF=5              # ...similar to above... (F)
-maxJF=6              # ...similar to above... (F)
-delJF=1              # ...similar to above... (F)
-snoozer=1              # set the sleep time between stages [s]
-tagit='IMSRG'            # a tag for the symlinks below
-catch='forM2nu'          # acts as a descriptor to help find the GT operator in $imaout, see $filebase below
-catchGT='GamowTeller'    # " " " " " " " " " " " ", " " " (without MECs)
-catchMEC='GTMEC'        # " " " " " " " " " " " ", " " " (with MECs)
-imaout=os.getcwd()          # this must point to where the IMSRG output files live
-imasms='/global/home/belley/Scripts_decay/'# " " " " " " nuqsub.sh script lives
-imamyr='/global/home/belley/imsrg/work/results/'           # " " " " " " final results may be copied to
-mecon='MEC'
-ormanual='0'
-oron='on'
-or1='1'
-or2='2'
-runon='Q'
-runoff='0'
-Zid=000000
+neigI    = 5              # number of eigenstates for nushellx to calculate for the initial nucelus (I)
+maxJI    = 6              # maximum total angular momentum of the initial nucleus' state (I)
+delJI    = 1              # step size for the total angular momentum calculations (I)
+maxJK    = 6              # ...similar to above... (K)
+delJK    = 1              # ...similar to above... (K)
+neigF    = 5              # ...similar to above... (F)
+maxJF    = 6              # ...similar to above... (F)
+delJF    = 1              # ...similar to above... (F)
+snoozer  = 1              # set the sleep time between stages [s]
+tagit    = 'IMSRG'        # a tag for the symlinks below
+catch    = 'forM2nu'      # acts as a descriptor to help find the GT operator in $imaout, see $filebase below
+catchGT  = 'GamowTeller'  # " " " " " " " " " " " ", " " " (without MECs)
+catchMEC = 'GTMEC'        # " " " " " " " " " " " ", " " " (with MECs)
+
+#Paths were to find the files from the IMSRG and fro the job submission. You should change this to match your directory
+if str(os.environ['HOSTNAME']) == 'oak.arc.ubc.ca':
+	imaout = "/global/home/belley/imsrg/work/output/"                       # this must point to where the IMSRG output files live
+	imasms = '/global/home/belley/Scripts_decay/'                           # " " " " " " nuqsub.py script lives
+	imamyr ='/global/home/belley/imsrg/work/results/'                       # " " " " " " final results may be copied to
+elif str(os.environ['HOSTNAME'])[7:] == 'cedar.computecanada.ca':
+	imaout = "/home/belleya/projects/def-holt/belleya/imsrg/work/output/"   # this must point to where the IMSRG output files live
+	imasms = '/home/belleya/projects/def-holt/belleya/Scripts_decay/'       # " " " " " " nuqsub.py script lives
+	imamyr = "/home/belleya/projects/def-holt/belleya/imsrg/work/output/"   # " " " " " " final results may be copied to
+else:
+	print('This cluster is not known')
+	print('Add the paths to execute_M2nu.py in this cluster')
+	print('Exiting...')
+	exit(1)		
+
+
+mecon    = 'MEC'
+ormanual = '0'
+oron     = 'on'
+or1      = '1'
+or2      = '2'
+runon    = 'Q'
+runoff   = '0'
 
 sys.path.append(imasms)
-from write_evolve_file import *
+from ReadWrite import *
 
 #Change the name of the file (see below) depending of if mec is chosen or not
 if args.mec:
 	mecopt = mecon
 else:
 	mecopt = 'off'
-
 
 #Value for each stages and reference for future conditional statement
 srun    = list(args.srun)
@@ -117,8 +129,8 @@ nucK=ELEM[ZK]+str(args.A)
 if nucK == 'sc48':
 	gsJK=6
 	gsPK=0
-	sesJK=1
-	sesPK=0
+	sesJK=1 # the total angular momentum of the intermediate nuclear excited states (to be summed over)
+	sesPK=0 # the parity of the " " " " " " " ", 0 = positive, 1 = negative
 else:
 	print('ERROR 0429: the intermediate g.s./s.e.s. for this decay has not been set, please add them to the g.s./s.e.s. if-else ladder!') 
 	print("nucK = "+nucK)
@@ -473,7 +485,8 @@ f.write("if tempf.endswith(('.xvc','.nba','.prj','.sps','.sp','.lpt')):\n\t\t")
 if s5run == runon:
 	f.write("os.system('ln -sf ../"+nudirF+"/'+tempf+' ../"+FKdir+"/'+tempf)\n\t\t") # this will make the appropriate symlinks of the nushellx stuff from the $nudirF to the FKdir
 f.close()
-os.system('chmod 755 '+linkpy)
+st = os.stat(linkpy)
+os.chmod(linkpy,st.st_mode |stat.S_IXUSR| stat.S_IXGRP|stat.S_IXOTH )
 
 os.chdir('..')
 if s123run != s123off and args.flow != 'BARE' and ormanual != or1:
@@ -508,7 +521,6 @@ sleep(snoozer)
 #----------------------------------- STAGE 1 -----------------------------------
 
 # run nushellx for the initial nucleus, $nucI
-s1id    = Zid
 nucIans = nucI+'.ans'
 nucIao  = nucIans+'.o'
 
@@ -525,7 +537,6 @@ if s1run == runon:
 
 
 # run nushellx for the final nucleus, $nucF
-s2id = Zid # stage 2 que id, as a backup...
 nucKans = nucK+'.ans'
 nucKao  = nucKans+'.o'
 
@@ -549,7 +560,6 @@ if s2run == runon:
 #----------------------------------- STAGE 3 -----------------------------------
 
 # run nushellx for the initial nucleus, $nucI
-s3id    = Zid
 nucFans = nucF+'.ans'
 nucFao  = nucFans+'.o'
 
@@ -566,35 +576,32 @@ if s3run == runon:
 #----------------------------------- STAGE 4 -----------------------------------
 
 # run nutbar to get the < K | \sigma\tau | I > NMEs
-s4id      = Zid           #satge 3 que id, as a backup...
-outfile4  = "nutbar_tensor0_"+nucK+"0.dat" #this should contain the results :)
+outfile4  = 'nutbar_tensor1_'+nucK+'0.dat'  # this should contain the results! :)
 nutrun4   = "nutbar_"+nucK+"0" 
 nutrun4in = nutrun4+".input"
 
 if s4run == runon:
 	os.chdir(KIdir)
 	if args.flow != 'BARE' and ormanual != or1:
-		write_nutrunin(nucI, nucF, tagit, onebop, twobop, c =sesJK)
+		write_nutrunin(nucI, nucK, tagit, onebop, twobop,  JF=sesJK, NF=args.neigK)
 	else:
-		write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
+		write_nutrunin(nucI, nucK, args.sp, onebop, twobop, JF=sesJK, NF=args.neigK)
 	os.chdir('..')
 sleep(snoozer)
-
 
 #----------------------------------- STAGE 5 -----------------------------------
 
 # run nutbar to get the < F | \sigma\tau | K > NMEs
-s5id      = Zid           #satge 3 que id, as a backup...
-outfile5  = "nutbar_tensor0_"+nucF+"0.dat" #this should contain the results :)
+outfile5  = 'nutbar_tensor1_'+nucF+'0.dat'  # this should contain the results! :)
 nutrun5   = "nutbar_"+nucF+"0" 
 nutrun5in = nutrun5+".input"
 
 if s5run == runon:
 	os.chdir(FKdir)
 	if args.flow != 'BARE' and ormanual != or1:
-		write_nutrunin(nucI, nucF, tagit, onebop, twobop)
+		write_nutrunin(nucK, nucF, tagit, onebop, twobop, JI=sesJK, NI=args.neigK)
 	else:
-		write_nutrunin(nucI, nucF, args.sp, onebop, twobop)
+		write_nutrunin(nucK, nucF, args.sp, onebop, twobop, JI=sesJK, NI=args.neigK)
 	os.chdir('..')
 sleep(snoozer)
 
@@ -602,8 +609,11 @@ sleep(snoozer)
 
 
 #Sends the job to qsub, where the executable to be run are in execute.py
-command = "'python "+imasms+"execute_M2nu.py "+args.srun+" "+nucI+" "+nucK+" "+nucF+"'"
-submit  = "python "+imasms+"nuqsub.py command "+nucI+" M2nu_"+quni
+command = write_sh_M2nu(args.srun, nucI, nucK, nucF, mydir)
+if str(os.environ['HOSTNAME']) == 'oak.arc.ubc.ca':
+	 submit  = "python "+imasms+"nuqsub.py "+command+" "+nucI+" M2nu_"+quni
+elif str(os.environ['HOSTNAME'])[7:] == 'cedar.computecanada.ca':
+	submit  = "python "+imasms+"nuqsub.py "+command+" "+nucI+" M2nu_"+quni+" -t '06:00:00'"
 os.system(submit)
 
 #-----------------Write script to copy result into desired directory-------------------
@@ -628,4 +638,5 @@ f.write("os.system(cp "+KIdir+"/"+outfile4+" "+totmyr+"/"+KIdir+")\n")
 f.write("os.system(cp "+FKdir+"/"+outfile5+" "+totmyr+"/"+FKdir+")\n")
 f.write("cp -R sumM2nu_* "+totmyr)  # NOTE: technically none of these will exist until sumM2nu.py is run
 f.close()
-os.system('chmod 755 '+mycppy)
+st = os.stat(mycppy)
+os.chmod(mycppy ,st.st_mode |stat.S_IXUSR| stat.S_IXGRP|stat.S_IXOTH )
