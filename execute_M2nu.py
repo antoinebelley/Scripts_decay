@@ -3,20 +3,11 @@ import argparse
 from time import sleep
 
 parser = argparse.ArgumentParser()
-parser.add_argument("srun",    help = "'s1', 's2', 's12' or 'off', where s stands for stage ")
 parser.add_argument("nucI",    help = "Initial nucleus" )
 parser.add_argument("nucK",    help = "Intermediate nucleus")
 parser.add_argument("nucF",    help = "Initial nucleus" )
 parser.add_argument("mydir",   help = "Directory for the run")
 args = parser.parse_args()
-
-runon='Q'
-srun    = list(args.srun)
-s1run   = srun[0]
-s2run   = srun[1]
-s3run   = srun[2] 
-s4run   = srun[3]
-s5run   = srun[4]
 
 
 
@@ -102,21 +93,16 @@ def execute_stage5():
 	os.chdir('..')
 
 os.chdir(PWD+args.nucI+"/"+args.mydir+"/")
-if s1run == runon:
-	execute_stage1()
-	sleep(1)
-if s2run == runon:
-	execute_stage2()
-	sleep(1)
-if s3run == runon:
-	execute_stage3()
-	sleep(1)
+execute_stage1()
+sleep(1)
+execute_stage2()
+sleep(1)
+execute_stage3()
+sleep(1)
 execute_links()
 sleep(1)
-if s4run == runon:
-	execute_stage4()
-	sleep(1)
-if s5run == runon:
-	execute_stage5()
-	sleep(1)
+execute_stage4()
+sleep(1)
+execute_stage5()
+sleep(1)
 os.system('rm -f execute_M2nu.sh')

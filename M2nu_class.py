@@ -17,9 +17,9 @@ else:
   exit(1)
 sys.path.append(imasms)
 from ReadWrite import *
+from decay import M2nu
 
-
-class data_M2nu():
+class DataM2nu():
 
   def __init__(self, Z, A, emax, hw, neigK, shift, correction):
     self.ZI          = Z
@@ -28,7 +28,7 @@ class data_M2nu():
     self.hw          = hw
     self.neigK       = neigK
     self.shift       = shift
-    self. correction = correction
+    self.correction  = correction
     self.name        = f'emax{self.emax}_hw{self.hw}_{self.shift}_{self.correction}'
     #Determine the intermediate and final nucleus
     self.ZK          = Z+1
@@ -44,10 +44,11 @@ class data_M2nu():
     self.nucF        = f'{self.ELEM[self.ZF]}{A}'
     #Find the path (and make sure that it exists) 
     #to the directory for the BARE, SRG and MEC results
-    SigmaTauDir = f'{self.nucI}/M2nu*_OS_*e{self.emax}*hw{self.hw}*neig{self.neigK}'
+    Gx1apnDir   = f'{self.nucI}/M2nu*_OS_*e{self.emax}*hw{self.hw}*neig{self.neigK}'
+    SigmaTauDir = f'{self.nucI}/M2nu*_HF_*e{self.emax}*hw{self.hw}*neig{self.neigK}'
     SrgDir      = f'{self.nucI}/M2nu*_3N_*e{self.emax}*hw{self.hw}*neig{self.neigK}'
     MecDir      = f'{self.nucI}/M2nu*_3N_*e{self.emax}*hw{self.hw}*neig{self.neigK}_MEC'
-    directories = [SigmaTauDir, SrgDir, MecDir]
+    directories = [Gx1apnDir, SigmaTauDir, SrgDir, MecDir]
     for directory in directories:
       try:
         directory = glob.glob(f'{directory}')[0]
@@ -55,7 +56,8 @@ class data_M2nu():
         print(f'ERROR: Cannot find {directory}')
         print('Exiting...')
         exit(1)
-    self.SigmaTauDir = glob.glob(f'{SigmaTauDir}')[0]
+    self.Gx1apnDir   = glob.glob(f'{Gx1apnDir}')[0]
+    self.SigmaTauDir = glob.glob(f'{SigmaTauDir}'[0])
     self.SrgDir      = glob.glob(f'{SrgDir}')[0]
     self.MecDir      = glob.glob(f'{MecDir}')[0]
     #Make sure those are the same then in goM2nu.py
@@ -76,16 +78,17 @@ class data_M2nu():
     self.outdir = f'{self.nucI}/results/emax{emax}_hw{hw}'
 
 
-  def sumM2nu_SigmaTau(self):
-    EKgs = read_Egs(f'{self.nucK}', f'{self.SigmaTauDir}/{self.nudirKgs}')
+  def sumM2nu_gx1apn(self):
+    """Calculate the M2nu for the OS op with the gx1apn interaction"""
+    EKgs = read_Egs(f'{self.nucK}', f'{self.Gx1apnDir}/{self.nudirKgs}')
     M2nu    = 0 # initialize the sum over K
     Cexp    = 0 # initialize the correction value = $EXP - min($EK-$EKgs)
     maxKsum = self.neigK+8
     M2nu_array  = []
     ExC_array   = []
     for i in range(7,maxKsum-1):
-      EK, nmeKI = read_Eses(state = i, directory = f'{self.SigmaTauDir}/{self.KIdir}', file = self.nutfileK)
-      EF, nmeFK = read_Eses(state = i, directory = f'{self.SigmaTauDir}/{self.FKdir}', file = self.nutfileF)
+      EK, nmeKI = read_Eses(state = i, directory = f'{self.Gx1apnDir}/{self.KIdir}', file = self.nutfileK)
+      EF, nmeFK = read_Eses(state = i, directory = f'{self.Gx1apnDir}/{self.FKdir}', file = self.nutfileF)
       Ex        = EK-EKgs                           # the excitation energy     
       if self.correction == 'on' and i == 7:
           Cexp = self.EXP - Ex                         # the experimental energy correction value
@@ -102,6 +105,28 @@ class data_M2nu():
     self.M2nuQ77 = self.M2nu*0.77*0.77
     self.M2nuQ74 = self.M2nu*0.74*0.74
     self.ExC     = ExC_array
+
+  def sumM2nu_sigmatau(self):
+    """Caculate the sum for the sigma tau HF op with the imsrg wave function"""
+    EKgs = read_Egs(f'{self.nucK}', f'{self.Gx1apnDir}/{self.nudirKgs}')
+    M2nu    = 0 # initialize the sum over K
+    Cexp    = 0 # initialize the correction value = $EXP - min($EK-$EKgs)
+    maxKsum = self.neigK+8
+    M2nu_array  = []
+    ExC_array   = []
+    for i in range(7,maxKsum-1):
+      EK, nmeKI = read_Eses(state = i, directory = f'{self.SigmaTauDir}/{self.KIdir}', file = self.nutfileK)
+      EF, nmeFK = read_Eses(state = i, directory = f'{self.SigmaTauDir}/{self.FKdir}', file = self.nutfileF)
+      Ex        = EK-EKgs                           # the excitation energy     
+      if self.correction == 'on' and i == 7:
+          Cexp = self.EXP - Ex                         # the experimental energy correction value
+      ExC   = Ex+Cexp
+      denom = ExC+self.Eshift                    # denominator of the sum
+      M2nu  = single_M2nu(nmeKI, nmeFK, M2nu,denom)
+      aM2nu = abs(M2nu)
+      M2nu_array.append(aM2nu)
+    M2nu_array   = np.array(M2nu_array)
+    self.M2nuSig = M2nu_array
 
   def sumM2nu_evolved(self):
     EKgs     = read_Egs(f'{self.nucK}', f'{self.SrgDir}/{self.nudirKgs}')
@@ -141,31 +166,36 @@ class data_M2nu():
 
   def getdataframe(self):
     try :
-      data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.M2nuSrg, self.M2nuMec])
+      data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.sigma, self.M2nuSrg, self.M2nuMec])
     except AttributeError:
-      self.sumM2nu_SigmaTau()
+      self.sumM2nu_gx1apn()
       try:
-        data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.M2nuSrg, self.M2nuMec])
+        data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.sigma, self.M2nuSrg, self.M2nuMec])
       except AttributeError:
         self.sumM2nu_evolved()
-        data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.M2nuSrg, self.M2nuMec])
+        try:
+          data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.sigma self.M2nuSrg, self.M2nuMec])
+        except AttributeError:
+          self.sumM2nu_sigmatau()
+          data = np.array([self.ExC, self.M2nu, self.M2nuQ82, self.M2nuQ77, self.M2nuQ74, self.sigma self.M2nuSrg, self.M2nuMec])
     data = pd.DataFrame(data.transpose())
-    data.columns = ['ExC', 'SigmaTau','qf = 0.82', 'qf = 0.77', 'qf = 0.74', 'Srg', 'Mec']
+    data.columns = ['ExC', 'Gx1apn','qf = 0.82', 'qf = 0.77', 'qf = 0.74', 'SigmaTau', 'Srg', 'Mec']
     self.data = data
 
   def write_plot_file(self):
     plotfile = f'plot_{self.name}.dat'
     try:
-      self.data.to_csv(f'{self.outdir}/{plotfile}',sep = '\t', index=False)
+      self.data.to_csv(f'{self.outdir}/{plotfile}',sep = '\t', header =['ExC', 'Gx1apn', 
+                      'qf = 0.82', 'qf = 0.77', 'qf = 0.74', 'SigmaTau', 'Srg', 'Mec'], index=False)
     except:
       self.getdataframe()
-      self.data.to_csv(f'{self.outdir}/{plotfile}',sep = '\t', header =['ExC', 'SigmaTau', 
-                      'qf = 0.82', 'qf = 0.77', 'qf = 0.74', 'Srg', 'Mec'], index=False)
+      self.data.to_csv(f'{self.outdir}/{plotfile}',sep = '\t', header =['ExC', 'Gx1apn', 
+                      'qf = 0.82', 'qf = 0.77', 'qf = 0.74', 'SigmaTau', 'Srg', 'Mec'], index=False)
   
   def write_output_file(self):
-    EIgs = read_Egs(f'{self.nucI}', f'{self.SigmaTauDir}/{self.nudirI}')
-    EKgs = read_Egs(f'{self.nucK}', f'{self.SigmaTauDir}/{self.nudirKgs}')
-    EFgs = read_Egs(f'{self.nucF}', f'{self.SigmaTauDir}/{self.nudirF}')
+    EIgs = read_Egs(f'{self.nucI}', f'{self.Gx1apnDir}/{self.nudirI}')
+    EKgs = read_Egs(f'{self.nucK}', f'{self.Gx1apnDir}/{self.nudirKgs}')
+    EFgs = read_Egs(f'{self.nucF}', f'{self.Gx1apnDir}/{self.nudirF}')
     EIgsSrg = read_Egs(f'{self.nucI}', f'{self.SrgDir}/{self.nudirI}')
     EKgsSrg = read_Egs(f'{self.nucK}', f'{self.SrgDir}/{self.nudirKgs}')
     EFgsSrg = read_Egs(f'{self.nucF}', f'{self.SrgDir}/{self.nudirF}')
@@ -189,6 +219,7 @@ class data_M2nu():
     M2nuQ82 = self.M2nuQ82[len(self.M2nu)-1]
     M2nuQ77 = self.M2nuQ77[len(self.M2nu)-1]
     M2nuQ74 = self.M2nuQ74[len(self.M2nu)-1]
+    M2nuSig = self.M2nuSig[len(self.M2nu)-1]
     M2nuSrg = self.M2nuSrg[len(self.M2nu)-1]
     M2nuMec = self.M2nuMec[len(self.M2nu)-1]
     f.write('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
@@ -197,6 +228,7 @@ class data_M2nu():
     f.write(f'M2nu*0.82*0.82 = {M2nuQ82}\n')
     f.write(f'M2nu*0.77*0.77 = {M2nuQ77}\n')
     f.write(f'M2nu*0.74*0.74 = {M2nuQ74}\n')
+    f.write(f'M2nu(sigtau)   = {M2nu}\n')
     f.write(f'M2nu(SRG)      = {M2nuSrg}\n')
     f.write(f'M2nu(SRG+MEC)  = {M2nuMec}\n')
     f.close()
@@ -204,14 +236,16 @@ class data_M2nu():
     self.M2nuQ82_result = M2nuQ82
     self.M2nuQ77_result = M2nuQ77
     self.M2nuQ74_result = M2nuQ74
+    self.M2nuSig_result = M2nuSig
     self.M2nuSrg_result = M2nuSrg
     self.M2nuMec_result = M2nuMec
 
 
   def make_plot(self):
     fig = plt.figure()
-    plt.plot(self.data['ExC'], self.data['SigmaTau'], label=r'$\sigma\tau$')
+    plt.plot(self.data['ExC'], self.data['Gx1apn'], label=r'gx1apn$')
     plt.plot(self.data['ExC'], self.data['qf = 0.82'], label='qf=0.82')
+    plt.plot(self.data['ExC'], self.data['SigmaTau'], label=r'$\sigma\tau$')
     plt.plot(self.data['ExC'], self.data['Srg'], label=r'$\sigma\tau$(srg)')
     plt.plot(self.data['ExC'], self.data['Mec'], label=r'$\sigma\tau$ + 2bc')
     plt.xlabel(r'$E_x$')

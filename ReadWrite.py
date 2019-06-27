@@ -4,7 +4,7 @@ import glob
 import numpy as np
 
 #Writes the ans file for nushell and compile it sending the output to the ans.o file
-def write_ans(nucleus, neig, sp, inte, Z, A, minJ, maxJ, delJ, parity):
+def write_ans(nucleus, neig, sp, intet, Z, A, minJ, maxJ, delJ, parity):
     nucans = nucleus+'.ans'
     nucao  = nucans+'.o'
     f = open(nucans,"w") #Wil overwrite file if they already exists
@@ -12,7 +12,7 @@ def write_ans(nucleus, neig, sp, inte, Z, A, minJ, maxJ, delJ, parity):
     f.write("lpe,   "+str(neig)+"             ! option (lpe or lan), neig (zero=10)\n")
     f.write(sp+"                ! model space (*.sp) name (a8)\n")
     f.write('n                    ! any restrictions (y/n)\n')
-    f.write(inte+"                ! model space (*.int) name (a8)\n")
+    f.write(inter+"                ! model space (*.int) name (a8)\n")
     f.write(" "+str(Z)+"                  ! number of protons\n")
     f.write(" "+str(A)+"                  ! number of nucleons\n")
     f.write(" "+str(minJ)+".0, "+str(maxJ)+".0, "+str(delJ)+".0,      ! min J, max J, del J\n")

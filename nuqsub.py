@@ -23,6 +23,7 @@ parser.add_argument("-n", "--mynth" ,  nargs=1, action='store',  help = "In [1,$
 parser.add_argument("-t", "--time", nargs=1, action='store' ,default='24:00:00', help = "Time request if you use cedar. Default is 24:00:00")
 args = parser.parse_args()
 
+
 mycmd        = args.mycmd
 myrun        = args.myrun
 mybarcode    = args.mybarcode

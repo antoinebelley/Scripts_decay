@@ -41,10 +41,10 @@ args = parser.parse_args()
 
 
 #Initiate the intances of data_M2nu for each shift and correction option
-data_mine_abin = data_M2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'mine', 'off')
-data_mine_corr = data_M2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'mine', 'on')
-data_lit_abin  = data_M2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'lit', 'off')
-data_lit_corr  = data_M2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'lit', 'on')
+data_mine_abin = DataM2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'mine', 'off')
+data_mine_corr = DataM2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'mine', 'on')
+data_lit_abin  = DataM2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'lit', 'off')
+data_lit_corr  = DataM2nu(args.ZI, args.A, args.emax, args.hw, args.neigK, 'lit', 'on')
 
 #Create the directory that will hold the results for the isotope
 os.makedirs(f'{data_lit_abin.nucI}/results', exist_ok = True)
@@ -101,7 +101,7 @@ for data in [data_mine_abin, data_mine_corr, data_lit_abin, data_lit_corr]:
   f.write(f'M2nu(SRG+MEC)  = {data.M2nuMec_result}\n')
   f.write('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n')
 for data in [data_mine_abin, data_mine_corr, data_lit_abin, data_lit_corr]:
-  f.write(f'{data.name} = ({data.M2nu_result}, {data.M2nuQ82_result}, {data.M2nuQ77_result}, {data.M2nuQ74_result}, {data.M2nuSrg_result}, {data.M2nuMec_result})\n')
+  f.write(f'\'{data.name}\' : ({data.M2nu_result}, {data.M2nuQ82_result}, {data.M2nuQ77_result}, {data.M2nuQ74_result}, {data.M2nuSrg_result}, {data.M2nuMec_result}),\n')
 f.close()
 
 #Print the output
