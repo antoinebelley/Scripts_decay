@@ -1,9 +1,10 @@
 import os
 import stat
 import glob
-import numpy as np
+
 
 #Writes the ans file for nushell and compile it sending the output to the ans.o file
+
 def write_ans(nucleus, neig, sp, inte, Z, A, minJ, maxJ, delJ, parity):
     nucans = nucleus+'.ans'
     nucao  = nucans+'.o'

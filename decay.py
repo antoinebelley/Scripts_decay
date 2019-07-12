@@ -433,8 +433,6 @@ class NutbarDirDGT(NutbarDir):
       print(f'{self.directory} is likely empty')
       print('Exiting...')
       exit(1)
-
-
 ###############################################################################
 
 
@@ -522,7 +520,6 @@ class M0nu(Decay):
     st = os.stat(sh)
     os.chmod(sh,st.st_mode |stat.S_IXUSR| stat.S_IXGRP|stat.S_IXOTH )
     return sh
-
 ###########################################################################################
 
 class M2nu(Decay):
@@ -661,6 +658,7 @@ class M2nu(Decay):
     st = os.stat(sh)
     os.chmod(sh,st.st_mode |stat.S_IXUSR| stat.S_IXGRP|stat.S_IXOTH )
     return sh
+
 
 ###########################################################################################
 

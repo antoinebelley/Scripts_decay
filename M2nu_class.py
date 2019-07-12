@@ -20,7 +20,6 @@ sys.path.append(imasms)
 from ReadWrite import *
 
 
-
 class Directory():
   """Class containing the function to sum the NME on a particular directory"""
   instances = []
