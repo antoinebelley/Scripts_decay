@@ -1,20 +1,13 @@
 import os
 import argparse
+from time import sleep
 
 parser = argparse.ArgumentParser()
-parser.add_argument("srun",    help = "'s1', 's2', 's12' or 'off', where s stands for stage ")
 parser.add_argument("nucI",    help = "Initial nucleus" )
 parser.add_argument("nucK",    help = "Intermediate nucleus")
 parser.add_argument("nucF",    help = "Initial nucleus" )
+parser.add_argument("mydir",   help = "Directory for the run")
 args = parser.parse_args()
-
-runon='on'
-srun    = list(args.srun)
-s1run   = srun[0]
-s2run   = srun[1]
-s3run   = srun[2] 
-s4run   = srun[3]
-s5run   = srun[4]
 
 
 
@@ -26,54 +19,90 @@ nudirF    = 'nushxF_data'      # " " " " " " " " $nucF
 linkdir   = 'nushx_symlinks'   # this directory just holds the symlinks script and output from its clutser run
 KIdir     = 'KI_nutbar'        # this director will hold the < K | \sigma\tau | i > nutbar results
 FKdir     = 'FK_nutbar'        #" " " " " < F | \sigma\tau | K > " "
+
+if os.environ['HOSTNAME'] == 'oak.arc.ubc.ca':
+	PWD = "/global/scratch/belley/M2vu/"
+elif str(os.environ['HOSTNAME'])[7:] == "cedar.computecanada.ca" :
+	PWD = '/home/belleya/scratch/belleya/M2nu/'
+else:
+	PWD = '/home/belleya/scratch/belleya/M2nu/'
+
+
+
+linkpy    = "./"+linkdir+".py" 
 nutrun4   = "nutbar_"+args.nucK+"0" 
 nutrun4in = nutrun4+".input"
 nutrun5   = "nutbar_"+args.nucF+"0" 
 nutrun5in = nutrun5+".input"
-PWD       = os.getcwd()
-linkpy =  linkdir+".py" 
+bat_s1     = "./"+args.nucI+".bat"
+bat_s2_gs  = "./"+args.nucK+".bat"
+bat_s2_ses = "./"+args.nucK+".bat"
+bat_s3     = "./"+args.nucF+".bat"
 
-cmd_s1       = "bash -c "+PWD+"/"+nudirI+"/"+args.nucI+".bat"
-cmd_s2_gs    = "bash -c "+PWD+"/"+nudirKgs+"/"+args.nucK+".bat"
-cmd_s2_ses   = "bash -c "+PWD+"/"+nudirK+"/"+args.nucK+".bat"
-cmd_s3       = "bash -c "+PWD+"/"+nudirF+"/"+args.nucF+".bat"
-cmd_links    = "python "+PWD+linkdir+"/"+linkpy
-cmd_s4       = "nutbar "+PWD+"/"+KIdir+"/"+nutrun4in
-cmd_s5       = "nutbar "+PWD+"/"+FKdir+"/"+nutrun5in
+
+def command(file):
+	if file.endswith(".py"):
+		cmd = "python "+file
+	elif file.endswith(".input"):
+		cmd = "nutbar "+file
+	elif file.endswith(".bat"):
+		cmd = "bash -c "+file
+	else:
+		print("File doesn't have the right extension.")
+		print("Exiting...")
+		exit(1)
+	return cmd 
 
 def execute_stage1():
 	#Run nushell fot the initial state
-	os.system(cmd_s1)
+	os.chdir(nudirI)
+	os.system(command(bat_s1))
+	os.chdir("..")
 
 def execute_stage2():
 	#Run nushell for the intermediate state (both gs and ses)
-	os.system(cmd_s2_gs)
-	os.system(cmd_s2_ses)
+	os.chdir(nudirKgs)
+	os.system(command(bat_s2_gs))
+	os.chdir('..')
+	os.chdir(nudirK)
+	os.system(command(bat_s2_ses))
+	os.chdir('..')
 
 def execute_stage3():
 	#Run nushell for the final stage
-	os.system(cmd_s3)
+	os.chdir(nudirF)
+	os.system(command(bat_s3))
+	os.chdir('..')
 
 def execute_links():
 	#Run linkpy, dependant on how I run nushellx
-	os.system(cmd_links)
+	os.chdir(linkdir)
+	os.system(command(linkpy))
+	os.chdir('..')
 
 def execute_stage4():
 	#Run nutbar for Intermediate-Initial step
-	os.system(cmd_s4)
+	os.chdir(KIdir)
+	os.system(command(nutrun4in))
+	os.chdir('..')
 
 def execute_stage5():
 	#Run nutbar for Final-intermediate step
-	os.system(cmd_s5)
+	os.chdir(FKdir)
+	os.system(command(nutrun5in))
+	os.chdir('..')
 
-if s1run == runon:
-	execute_stage1()
-if s2run == runon:
-	execute_stage2()
-if s3run == runon:
-	execute_stage3()
+os.chdir(PWD+args.nucI+"/"+args.mydir+"/")
+execute_stage1()
+sleep(1)
+execute_stage2()
+sleep(1)
+execute_stage3()
+sleep(1)
 execute_links()
-if s4run == runon:
-	execute_stage4()
-if s5run == runon:
-	execute_stage5()
+sleep(1)
+execute_stage4()
+sleep(1)
+execute_stage5()
+sleep(1)
+os.system('rm -f execute_M2nu.sh')

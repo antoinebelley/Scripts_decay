@@ -57,23 +57,21 @@ class PBS(cluster):
 			nth = self.thread
 		else:
 			clamp(nth, 1, self.thread)
-		FILECONTENT = """#!/bin/bash
-		#PBS -N %s
-		#PBS -q oak
-		#PBS -d %s
-		#PBS -l walltime=%d:00:00
-		#PBS -l nodes=1:ppn=%d
-		#PBS -l vmem=%sgb
-		#PBS -m ae
-		#PBS -M %s
-		#PBS -j oe
-		#PBS -o %s.pbs.o
-		cd $PBS_O_WORKDIR
-		export OMP_NUM_THREADS=%d
-		%s
-		"""
 		sfile = open(runname+'.batch','w')
-		sfile.write(FILECONTENT%(runname,os.environ['PWD'],wall,ppn,vmem,email,runname,nth,command))
+		sfile.write('#!/bin/bash\n')
+		sfile.write('#PBS -N '+runname+'\n')
+		sfile.write('#PBS -q oak\n')
+		sfile.write('#PBS -d '+os.environ['PWD']+'\n')
+		sfile.write('#PBS -l walltime='+str(wall)+':00:00\n')
+		sfile.write('#PBS -l nodes=1:ppn='+str(ppn)+'\n')
+		sfile.write('PBS -l vmem='+str(vmem)+'gb\n')
+		sfile.write('#PBS -m ae')
+		sfile.write('#PBS -M '+email+'\n')
+		sfile.write('#PBS -j oe')
+		sfile.write('#PBS -o '+runname+'.pbs.o\n')
+		sfile.write('cd $PBS_O_WORKDIR\n')
+		sfile.write('export OMP_NUM_THREADS='+str(nth)+'\n')
+		sfile.write(command+'\n')
 		sfile.close()
 		call(['qsub', runname+'.batch'])
 		os.remove(runname+'.batch')	
@@ -88,7 +86,7 @@ class SLURM(cluster):
 		self.vmem  = maxvmem
 
 
-	def submit_job(self, command, runname, email, vmem = None, nth = None, time = '24:00:00'):
+	def submit_job(self, command, runname, logname, email, vmem = None, nth = None, time = '24:00:00'):
 		clamp = lambda n, minn, maxn,: max(min(maxn,n), minn) #Makes sure the value is within a range and set it the boundary if it isn't
 		#verify that the given arguments are inside the allowed values for the specific cluster
 		if vmem is None:
@@ -99,23 +97,21 @@ class SLURM(cluster):
 			nth = self.thread
 		else: 
 			clamp(nth, 1, self.thread)
-		FILECONTENT = """#!/bin/bash
-		#SBATCH --account=rrg-holt
-		#SBATCH --nodes=1
-		#SBATCH --ntasks=1
-		#SBATCH --cpus-per-task=%d
-		#SBATCH --output=NME_log/%s.%%j
-		#SBATCH --time=%s
-		#SBATCH --mail-user=%s
-		#SBATCH --mail-type=END
-		#SBATCH --mem=%dG
-		cd $SLURM_SUBMIT_DIR
-		echo NTHREADS = %d
-		export OMP_NUM_THREADS=%d
-		time srun %s
-		"""
 		sfile = open(runname+'.batch','w')
-		sfile.write(FILECONTENT%(nth,runname,time,email,nth,nth,command))
+		sfile.write('#!/bin/bash\n')
+		sfile.write('#SBATCH --account=rrg-holt\n')
+		sfile.write('#SBATCH --nodes=1\n')
+		sfile.write('#SBATCH --ntasks=1\n')
+		sfile.write('#SBATCH --cpus-per-task='+str(nth)+'\n')
+		sfile.write('#SBATCH --output='+logname+'%j\n')
+		sfile.write('#SBATCH --time='+time+'\n')
+		sfile.write('#SBATCH --mail-user='+email+'\n')
+		sfile.write('#SBATCH --mail-type=END\n')
+		sfile.write('#SBATCH --mem='+str(vmem)+'G\n')
+		sfile.write('cd $SLURM_SUBMIT_DIR\n')
+		sfile.write('echo NTHREADS = '+str(nth)+'\n')
+		sfile.write('export OMP_NUM_THREADS='+str(nth)+'\n')
+		sfile.write('time srun '+command)
 		sfile.close()
 		call(['sbatch', runname+'.batch'])
 		os.remove(runname+'.batch')
