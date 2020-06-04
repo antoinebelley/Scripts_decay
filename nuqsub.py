@@ -18,19 +18,25 @@ parser.add_argument("myrun",     help = "The run name, eg) for nushellx it is th
 parser.add_argument("mybarcode", help = "An additional barcode to make the run name more unqiue in the qsub (if undesired then enter 'off'")
 parser.add_argument("-w", "--mywall", nargs=1, action='store',   help = "In [1,$mywallmax],  walltime limit for qsub [hr]", type = int)
 parser.add_argument("-p", "--myppn", nargs=1, action='store',    help = "In [1,$myppnmax],   the number of CPUs to use for the qsub", type = int)
-parser.add_argument("-m", "--myvmem", nargs=1, action='store',   help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
-parser.add_argument("-n", "--mynth" ,  nargs=1, action='store',  help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument("-m", "--myvmem", nargs=1, action='store', default = 250, help = "In [1,$myvmemmax],  memory limit for qsub [GB]", type = int)
+parser.add_argument("-nth", "--mynth" ,  nargs=1, action='store',  help = "In [1,$mynthmax],   number of threads to use", type = int)
+parser.add_argument('-nd', "--nodes", nargs=1, action='store', help = "Number of nodes requested.", type=int)
 parser.add_argument("-t", "--time", nargs=1, action='store' ,default='24:00:00', help = "Time request if you use cedar. Default is 24:00:00")
 args = parser.parse_args()
+
 
 mycmd        = args.mycmd
 myrun        = args.myrun
 mybarcode    = args.mybarcode
 mywall       = args.mywall
 myppn        = args.myppn
-myvmem       = args.myvmem
+try:
+    myvmem   = args.myvmem[0]
+except:
+    myvmem   = args.myvmem
 mynth        = args.mynth
 time_request = args.time[0]
+nodes = args.nodes[0]
 
 
 ### Check to see what type of batch submission system we're dealing with
@@ -58,8 +64,8 @@ if batch_mode==True:
             print('Exiting...')
             exit(1)
     elif BATCHSYS == 'SLURM':
-        if str(os.environ['HOSTNAME']) == cedar.host: 
-            cedar.submit_job(mycmd,myrun, myemail, time = time_request)
+        if str(os.environ['HOSTNAME'])[7:] == cedar.host: 
+            cedar.submit_job(mycmd,myrun,myrun, myemail, vmem = myvmem, time = time_request, nodes = nodes)
         else:
             print('Cluster is not known. Please create an instance for it.')
             print('Exiting...')

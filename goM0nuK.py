@@ -40,7 +40,7 @@ else:
     print('Exiting...')
     exit(1) 
 sys.path.append(imasms)
-from decay import *
+from kshell_m0nu import *
 #Create an instance of the decay
 M0nu = M0nu(args.ZI, args.A, args.flow, args.sp, args.int, args.int3N, args.emax, args.hw, args.GTbar, args.Fbar, args.Tbar)
 # pre-check
@@ -55,38 +55,8 @@ sleep(snoozer)
 #prepping all the relevant symlinks\write linkpy
 M0nu.prep_symlinks()
 sleep(snoozer)
-#----------------------------------- STAGE 1 -----------------------------------
-# run nushellx 
-M0nu.write_nushell_files()
-#----------------------------------- STAGE 2 -----------------------------------
-#run nutbar to get final NME results
-M0nu.write_nutbar_files()
+
 #---------------------------------SENDING JOB QUEUE----------------------------------
 #Sends the job to qsub, where the executable to be run are in execute.py
 M0nu.send_queue(args.time)
-#-----------------Write script to copy result into desired directory-------------------
-# mycppy='mycopies.py' # a script to copy the results to $imamyr
-# outfileGT='nutbar_tensor0_'+nucF+'0_'+GTbar+'.dat'
-# outfileF='nutbar_tensor0_'+nucF+'0_'+Fbar+'.dat'
-# outfileT='nutbar_tensor0_'+nucF+'0_'+Tbar+'.dat'
-# totmyr = imamyr+'M0nu/'+nucI+'/'+mydir
-# f = open(mycppy, 'w')
-# f.write('import os\n')
-# f.write('os.makedirs(''+imamyr+'+M0nu', exist_ok=True)\n')
-# f.write('os.makedirs(''+imamyr+'M0nu/'+nucI+'', exist_ok=True)\n')
-# f.write('os.makedirs(''+totmyr+'')\n')
-# f.write('os.makedirs(''+totmyr+'/'+GTdir+'')\n')
-# f.write('os.makedirs(''+totmyr+'/'+Fdir+'')\n')
-# f.write('os.makedirs(''+totmyr+'/'+Tdir+'')\n')
-# f.write('os.system(cp '+GTdir+'/'+nucI+'*.lpt '+totmyr+'/'+GTdir+')\n')
-# f.write('os.system(cp '+GTdir+'/'+nucF+'*.lpt '+totmyr+'/'+GTdir+')\n')
-# f.write('os.system(cp '+GTdir+'/'+outfileGT+' '+totmyr+'/'+GTdir+')\n')
-# f.write('os.system(cp '+Fdir+'/'+nucI+'*.lpt '+totmyr+'/'+Fdir+')\n')
-# f.write('os.system(cp '+Fdir+'/'+nucF+'*.lpt '+totmyr+'/'+Fdir+')\n')
-# f.write('os.system(cp '+Fdir+'/'+outfileF+' '+totmyr+'/'+Fdir+')\n')
-# f.write('os.system(cp '+Tdir+'/'+nucI+'*.lpt '+totmyr+'/'+Tdir+')\n')
-# f.write('os.system(cp '+Tdir+'/'+nucF+'*.lpt '+totmyr+'/'+Tdir+')\n')
-# f.write('os.system(cp '+Tdir+'/'+outfileF+' '+totmyr+'/'+Tdir+')\n')
-# f.close()
-# st = os.stat(mycppy)
-# os.chmod(mycppy,st.st_mode |stat.S_IXUSR| stat.S_IXGRP|stat.S_IXOTH )
+
